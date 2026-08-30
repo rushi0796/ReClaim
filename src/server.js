@@ -11,7 +11,14 @@ const PORT = process.env.PORT || 5000;
 
 const { getAuditLogs } = require('./utils/auditLogger');
 
-app.use(cors());
+// Production CORS Configuration
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-razorpay-signature']
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Routes

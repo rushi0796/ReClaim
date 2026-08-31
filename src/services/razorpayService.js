@@ -9,7 +9,7 @@ class RazorpayService {
     const keyId = process.env.RAZORPAY_KEY_ID;
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
-    if (keyId && keySecret && !keyId.includes('dummy') && !keyId.includes('your_')) {
+    if (keyId && keySecret && !keyId.includes('dummy')) {
       return new Razorpay({
         key_id: keyId,
         key_secret: keySecret
@@ -37,7 +37,7 @@ class RazorpayService {
           customer: {
             name: customer?.name || 'Valued Customer',
             email: customer?.email || 'customer@example.com',
-            contact: customer?.contact || '+919876543210'
+            contact: customer?.contact || '+919999999999'
           },
           notify: {
             sms: true,

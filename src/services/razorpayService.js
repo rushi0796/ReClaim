@@ -37,7 +37,7 @@ class RazorpayService {
           customer: {
             name: customer?.name || 'Valued Customer',
             email: customer?.email || 'customer@example.com',
-            contact: customer?.contact || '+919999999999'
+            contact: customer?.contact || '+919876543210'
           },
           notify: {
             sms: true,

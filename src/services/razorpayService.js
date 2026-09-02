@@ -3,17 +3,51 @@ const Razorpay = require('razorpay');
 
 class RazorpayService {
   /**
+   * Helper to retrieve Razorpay Key ID from environment with alias fallbacks.
+   * @returns {string|null}
+   */
+  static getKeyId() {
+    const raw = process.env.RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY || process.env.RAZORPAY_ID || '';
+    const trimmed = raw.trim();
+    return (trimmed && !trimmed.includes('your_') && !trimmed.includes('dummy')) ? trimmed : null;
+  }
+
+  /**
+   * Helper to retrieve Razorpay Key Secret from environment with alias fallbacks.
+   * @returns {string|null}
+   */
+  static getKeySecret() {
+    const raw = process.env.RAZORPAY_KEY_SECRET || process.env.RAZORPAY_SECRET || '';
+    const trimmed = raw.trim();
+    return (trimmed && !trimmed.includes('your_') && !trimmed.includes('dummy')) ? trimmed : null;
+  }
+
+  /**
+   * Helper to retrieve Razorpay Webhook Secret from environment with alias fallbacks.
+   * @returns {string|null}
+   */
+  static getWebhookSecret() {
+    const raw = process.env.RAZORPAY_WEBHOOK_SECRET || process.env.RAZORPAY_WEBHOOK || process.env.WEBHOOK_SECRET || '';
+    const trimmed = raw.trim();
+    return (trimmed && !trimmed.includes('your_') && !trimmed.includes('dummy')) ? trimmed : null;
+  }
+
+  /**
    * Initializes Razorpay SDK instance if keys are available in environment.
    */
   static getClient() {
-    const keyId = process.env.RAZORPAY_KEY_ID;
-    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    const keyId = this.getKeyId();
+    const keySecret = this.getKeySecret();
 
-    if (keyId && keySecret && keyId.startsWith('rzp_') && !keyId.includes('dummy') && !keyId.includes('your_')) {
-      return new Razorpay({
-        key_id: keyId,
-        key_secret: keySecret
-      });
+    if (keyId && keySecret) {
+      try {
+        return new Razorpay({
+          key_id: keyId,
+          key_secret: keySecret
+        });
+      } catch (err) {
+        console.warn('Razorpay SDK initialization warning:', err.message);
+      }
     }
     return null;
   }
@@ -105,18 +139,19 @@ class RazorpayService {
    * Accepts either raw Buffer, stringified JSON, or parsed object body.
    * @param {string|Buffer} body 
    * @param {string} signature - Header x-razorpay-signature
-   * @param {string} secret - Webhook secret from environment
+   * @param {string} [secret] - Webhook secret from environment
    * @returns {boolean}
    */
   static verifyWebhookSignature(body, signature, secret) {
-    if (!signature || !secret) return false;
+    const effectiveSecret = secret || this.getWebhookSecret();
+    if (!signature || !effectiveSecret) return false;
     try {
       const payloadString = Buffer.isBuffer(body)
         ? body.toString('utf8')
         : (typeof body === 'string' ? body : JSON.stringify(body));
 
       const expectedSignature = crypto
-        .createHmac('sha256', secret)
+        .createHmac('sha256', effectiveSecret)
         .update(payloadString)
         .digest('hex');
 

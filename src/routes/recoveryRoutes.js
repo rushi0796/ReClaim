@@ -3,6 +3,7 @@ const router = express.Router();
 const RecoveryService = require('../services/recoveryService');
 const DatasetService = require('../services/datasetService');
 const PersistentStorageService = require('../services/persistentStorageService');
+const RazorpayService = require('../services/razorpayService');
 const { getAuditLogs } = require('../utils/auditLogger');
 
 /**
@@ -20,7 +21,7 @@ router.get('/audit', async (req, res) => {
 
 /**
  * GET /api/recovery/diagnostics
- * Non-sensitive production system metadata for storage and integration status.
+ * Safe production system metadata reporting boolean environment variable presence.
  */
 router.get('/diagnostics', async (req, res) => {
   try {
@@ -28,13 +29,29 @@ router.get('/diagnostics', async (req, res) => {
     const livePayments = await DatasetService.getLivePaymentsAsync();
     const logs = await getAuditLogs();
 
+    const keyId = RazorpayService.getKeyId();
+    const keySecret = RazorpayService.getKeySecret();
+    const webhookSecret = RazorpayService.getWebhookSecret();
+    const redisCreds = PersistentStorageService.getKvCredentials();
+
+    const hasRazorpayKeyId = Boolean(keyId);
+    const hasRazorpayKeySecret = Boolean(keySecret);
+    const hasRazorpayWebhookSecret = Boolean(webhookSecret);
+    const hasUpstashUrl = Boolean(redisCreds && redisCreds.url);
+    const hasUpstashToken = Boolean(redisCreds && redisCreds.token);
+
     return res.json({
       environment: process.env.NODE_ENV || 'production',
       storage_provider: isCloudActive ? 'upstash_redis' : 'local_tmp_fallback',
       cloud_storage_configured: isCloudActive,
-      razorpay_credentials_configured: Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET),
-      webhook_secret_configured: Boolean(process.env.RAZORPAY_WEBHOOK_SECRET),
-      gemini_configured: Boolean(process.env.GEMINI_API_KEY),
+      razorpay_credentials_configured: Boolean(hasRazorpayKeyId && hasRazorpayKeySecret),
+      webhook_secret_configured: hasRazorpayWebhookSecret,
+      gemini_configured: Boolean(process.env.GEMINI_API_KEY && !process.env.GEMINI_API_KEY.includes('your_')),
+      has_razorpay_key_id: hasRazorpayKeyId,
+      has_razorpay_key_secret: hasRazorpayKeySecret,
+      has_razorpay_webhook_secret: hasRazorpayWebhookSecret,
+      has_upstash_url: hasUpstashUrl,
+      has_upstash_token: hasUpstashToken,
       persisted_live_payments_count: livePayments.length,
       audit_logs_count: logs.length,
       last_audit_event: logs[0] ? { timestamp: logs[0].timestamp, event_type: logs[0].event_type, payment_id: logs[0].payment_id } : null,

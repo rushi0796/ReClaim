@@ -9,7 +9,7 @@ const RazorpayService = require('../services/razorpayService');
  */
 router.post('/razorpay', async (req, res) => {
   const signature = req.headers['x-razorpay-signature'];
-  const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+  const webhookSecret = RazorpayService.getWebhookSecret();
 
   // Verify HMAC SHA256 signature if webhook secret is configured
   if (webhookSecret && signature) {

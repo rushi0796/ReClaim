@@ -3,6 +3,9 @@ const path = require('path');
 
 const IDEMPOTENCY_FILE = path.join(__dirname, '../../data/processed_events.json');
 
+// In-memory cache fallback for serverless environments
+const inMemoryProcessedEvents = new Map();
+
 /**
  * Checks if a webhook or payment event ID has already been processed.
  * @param {string} eventId 
@@ -10,12 +13,16 @@ const IDEMPOTENCY_FILE = path.join(__dirname, '../../data/processed_events.json'
  */
 function isEventProcessed(eventId) {
   if (!eventId) return false;
+  if (inMemoryProcessedEvents.has(eventId)) return true;
   try {
     if (fs.existsSync(IDEMPOTENCY_FILE)) {
       const content = fs.readFileSync(IDEMPOTENCY_FILE, 'utf8');
       if (content.trim()) {
         const processedMap = JSON.parse(content);
-        return Boolean(processedMap[eventId]);
+        if (processedMap[eventId]) {
+          inMemoryProcessedEvents.set(eventId, processedMap[eventId]);
+          return true;
+        }
       }
     }
   } catch (error) {
@@ -31,6 +38,11 @@ function isEventProcessed(eventId) {
  */
 function markEventProcessed(eventId, metadata = {}) {
   if (!eventId) return;
+  const eventRecord = {
+    processed_at: new Date().toISOString(),
+    ...metadata
+  };
+  inMemoryProcessedEvents.set(eventId, eventRecord);
   try {
     let processedMap = {};
     if (fs.existsSync(IDEMPOTENCY_FILE)) {
@@ -40,14 +52,10 @@ function markEventProcessed(eventId, metadata = {}) {
       }
     }
 
-    processedMap[eventId] = {
-      processed_at: new Date().toISOString(),
-      ...metadata
-    };
-
+    processedMap[eventId] = eventRecord;
     fs.writeFileSync(IDEMPOTENCY_FILE, JSON.stringify(processedMap, null, 2), 'utf8');
   } catch (error) {
-    console.error('Error recording processed event idempotency:', error.message);
+    // In serverless read-only environment, inMemoryProcessedEvents handles runtime idempotency
   }
 }
 

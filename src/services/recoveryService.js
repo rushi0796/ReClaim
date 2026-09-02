@@ -4,6 +4,7 @@ const ValidationEngine = require('../engine/validationEngine');
 const BatchRecoveryService = require('./batchRecoveryService');
 const BatchValidationService = require('./batchValidationService');
 const RecoveryActionExecutor = require('./recoveryActionExecutor');
+const AiReasoningService = require('./aiReasoningService');
 const { isEventProcessed, markEventProcessed } = require('../utils/idempotency');
 const { logDecision, logWebhookExecution } = require('../utils/auditLogger');
 const PolicyService = require('./policyService');
@@ -24,9 +25,10 @@ class RecoveryService {
   static validateBatchRecovery() {
     return BatchValidationService.validateBatch();
   }
+
   /**
-   * Processes incoming Razorpay payment failure webhook event:
-   * Extracts context -> checks idempotency -> decision analysis -> safety policy check -> executes intervention -> logs audit.
+   * Processes incoming Razorpay payment webhook event (payment.failed, payment.captured):
+   * Extracts context -> checks idempotency -> GenAI analysis -> safety policy check -> executes intervention -> logs audit.
    * @param {Object} eventBody 
    * @returns {Promise<Object>}
    */
@@ -46,7 +48,51 @@ class RecoveryService {
       };
     }
 
-    // 2. Extract and Normalize Payment Context
+    // Handle payment.captured lifecycle event
+    if (eventType === 'payment.captured' || paymentEntity.status === 'captured') {
+      const amountInINR = (paymentEntity.amount || eventBody.amount || 0) / (paymentEntity.amount >= 100 ? 100 : 1);
+      
+      const captureResult = {
+        status: 'captured_processed',
+        event_type: eventType,
+        event_id: eventId,
+        payment_id: paymentId,
+        amount: amountInINR,
+        currency: paymentEntity.currency || eventBody.currency || 'INR',
+        payment_status: 'captured',
+        message: 'Payment successfully captured in Razorpay Test Mode. Recovery lifecycle completed and future interventions stopped.',
+        policy_evaluation: {
+          allowed: false,
+          reason: 'payment_already_recovered',
+          action: 'stop'
+        },
+        execution: {
+          action: 'stop',
+          status: 'captured',
+          execution_mode: 'PAYMENT_CAPTURED_RECOVERY_STOPPED',
+          is_simulated: true,
+          timestamp: new Date().toISOString()
+        },
+        audit_logged: true
+      };
+
+      markEventProcessed(eventId, { payment_id: paymentId, status: 'captured' });
+      logWebhookExecution({
+        event_type: eventType,
+        event_id: eventId,
+        payment_id: paymentId,
+        amount: amountInINR,
+        currency: paymentEntity.currency || 'INR',
+        failure_reason: 'none',
+        analysis: { recommended_action: 'stop', recovery_probability: 1.0, expected_recovered_amount: amountInINR, confidence: 'high', reason: 'Payment captured successfully.' },
+        policy_evaluation: captureResult.policy_evaluation,
+        execution: captureResult.execution
+      });
+
+      return captureResult;
+    }
+
+    // 2. Extract and Normalize Payment Failure Context
     let rawAmount = paymentEntity.amount !== undefined ? paymentEntity.amount : (eventBody.amount || 0);
     let amountInINR = rawAmount;
     if (rawAmount >= 100 && (paymentEntity.amount !== undefined || rawAmount % 100 === 0)) {
@@ -84,24 +130,25 @@ class RecoveryService {
       failure_reason: normalizedFailure,
       customer_history: customerHistory,
       customer: customer,
-      status: paymentEntity.status || eventBody.status,
+      status: paymentEntity.status || eventBody.status || 'failed',
       failure_timestamp: paymentEntity.created_at || eventBody.failure_timestamp || eventBody.timestamp
     };
 
-    // 3. Decision Engine Analysis
+    // 3. Empirical LOOCV Baseline & GenAI Reasoning Analysis
     const dataset = DatasetService.getHistoricalPayments();
-    const analysisResult = DecisionEngine.analyze(paymentContext, dataset);
+    const empiricalAnalysis = DecisionEngine.analyze(paymentContext, dataset);
+    const aiAnalysisResult = await AiReasoningService.analyzePaymentWithAI(paymentContext, empiricalAnalysis);
 
-    // 4. Safety & Policy Engine Evaluation
-    const policyEvaluation = PolicyService.evaluatePolicy(paymentContext, analysisResult);
+    // 4. Deterministic Safety & Policy Engine Evaluation (Final Gate)
+    const policyEvaluation = PolicyService.evaluatePolicy(paymentContext, aiAnalysisResult);
 
     let executionResult;
     if (policyEvaluation.allowed) {
-      // 5. Recovery Action Execution (Test Mode / Simulated)
-      const bestAction = analysisResult.analysis.recommended_action;
+      // 5. Recovery Action Execution in Razorpay Test Mode
+      const bestAction = aiAnalysisResult.analysis.recommended_action;
       executionResult = await RecoveryActionExecutor.execute(bestAction, paymentContext);
     } else {
-      // Action Blocked by Policy Engine
+      // Action Blocked by Safety Policy Engine
       executionResult = {
         action: policyEvaluation.action,
         status: 'blocked',
@@ -119,7 +166,7 @@ class RecoveryService {
     // 6. Mark Event as Processed (Idempotency)
     markEventProcessed(eventId, {
       payment_id: paymentId,
-      action: policyEvaluation.allowed ? analysisResult.analysis.recommended_action : policyEvaluation.action,
+      action: policyEvaluation.allowed ? aiAnalysisResult.analysis.recommended_action : policyEvaluation.action,
       status: executionResult.status
     });
 
@@ -132,7 +179,7 @@ class RecoveryService {
       currency: currency,
       failure_reason: normalizedFailure,
       customer_history: customerHistory,
-      analysis: analysisResult.analysis,
+      analysis: aiAnalysisResult.analysis,
       policy_evaluation: policyEvaluation,
       execution: executionResult
     });
@@ -144,13 +191,16 @@ class RecoveryService {
       amount: amountInINR,
       currency: currency,
       failure_reason: normalizedFailure,
-      analysis: analysisResult.analysis,
-      alternatives: analysisResult.alternatives,
+      analysis: aiAnalysisResult.analysis,
+      alternatives: aiAnalysisResult.alternatives,
+      ai_status: aiAnalysisResult.ai_status,
+      ai_engine: aiAnalysisResult.ai_engine,
       policy_evaluation: policyEvaluation,
       execution: executionResult,
       audit_logged: true
     };
   }
+
   /**
    * Runs Leave-One-Out counterfactual validation across the historical dataset.
    * @returns {Object}
@@ -160,25 +210,26 @@ class RecoveryService {
   }
 
   /**
-   * Analyzes payment failure context and determines optimal recovery action with empirical probabilities.
+   * Analyzes payment failure context with GenAI & empirical probabilities.
    * @param {Object} payload 
-   * @returns {Object} Recovery analysis result
+   * @returns {Promise<Object>} Recovery analysis result
    */
-  static analyzeRecovery(payload) {
+  static async analyzeRecovery(payload) {
     const dataset = DatasetService.getHistoricalPayments();
-    const result = DecisionEngine.analyze(payload, dataset);
+    const empiricalAnalysis = DecisionEngine.analyze(payload, dataset);
+    const aiResult = await AiReasoningService.analyzePaymentWithAI(payload, empiricalAnalysis);
 
-    const policyEvaluation = PolicyService.evaluatePolicy(payload, result);
-    result.policy_evaluation = policyEvaluation;
+    const policyEvaluation = PolicyService.evaluatePolicy(payload, aiResult);
+    aiResult.policy_evaluation = policyEvaluation;
 
     // Save decision to audit log
-    logDecision(payload, result);
+    logDecision(payload, aiResult);
 
-    return result;
+    return aiResult;
   }
 
   /**
-   * Legacy decision method preserved for backward compatibility with POST /api/recovery/decide.
+   * Legacy decision method preserved for backward compatibility.
    * @param {Object} payload 
    * @returns {Object}
    */

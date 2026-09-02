@@ -646,5 +646,125 @@
     "payment_id": "pay_demo_valid_640",
     "action": "wait",
     "status": "blocked"
+  },
+  "evt_failed_1788370950826": {
+    "processed_at": "2026-09-02T17:42:30.884Z",
+    "payment_id": "pay_wh_test_1788370950825",
+    "action": "reminder",
+    "status": "executed"
+  },
+  "evt_captured_1788370950899": {
+    "processed_at": "2026-09-02T17:42:30.903Z",
+    "payment_id": "pay_captured_test_1788370950899",
+    "status": "captured"
+  },
+  "evt_failed_1788370978533": {
+    "processed_at": "2026-09-02T17:42:58.555Z",
+    "payment_id": "pay_wh_test_1788370978533",
+    "action": "reminder",
+    "status": "executed"
+  },
+  "evt_captured_1788370978567": {
+    "processed_at": "2026-09-02T17:42:58.571Z",
+    "payment_id": "pay_captured_test_1788370978567",
+    "status": "captured"
+  },
+  "event_policy_valid_1788370991483": {
+    "processed_at": "2026-09-02T17:43:11.507Z",
+    "payment_id": "pay_demo_valid_297",
+    "action": "reminder",
+    "status": "executed"
+  },
+  "event_policy_cooldown_1788370991516": {
+    "processed_at": "2026-09-02T17:43:11.523Z",
+    "payment_id": "pay_demo_valid_297",
+    "action": "wait",
+    "status": "blocked"
+  },
+  "event_policy_captured_1788370991532": {
+    "processed_at": "2026-09-02T17:43:11.536Z",
+    "payment_id": "pay_demo_captured_29",
+    "status": "captured"
+  },
+  "event_policy_valid_1788371010918": {
+    "processed_at": "2026-09-02T17:43:30.941Z",
+    "payment_id": "pay_demo_valid_173",
+    "action": "reminder",
+    "status": "executed"
+  },
+  "event_policy_cooldown_1788371010951": {
+    "processed_at": "2026-09-02T17:43:30.959Z",
+    "payment_id": "pay_demo_valid_173",
+    "action": "wait",
+    "status": "blocked"
+  },
+  "event_policy_captured_1788371010968": {
+    "processed_at": "2026-09-02T17:43:30.973Z",
+    "payment_id": "pay_demo_captured_146",
+    "status": "captured"
+  },
+  "evt_scen_a_1788371035363": {
+    "processed_at": "2026-09-02T17:43:55.383Z",
+    "payment_id": "pay_scen_a_1788371035363",
+    "action": "reminder",
+    "status": "executed"
+  },
+  "evt_scen_b_1788371035363": {
+    "processed_at": "2026-09-02T17:43:55.403Z",
+    "payment_id": "pay_scen_b_1788371035363",
+    "action": "payment_method_update",
+    "status": "executed"
+  },
+  "evt_scen_c_1788371035363": {
+    "processed_at": "2026-09-02T17:43:55.421Z",
+    "payment_id": "pay_scen_c_1788371035363",
+    "action": "escalate",
+    "status": "blocked"
+  },
+  "evt_scen_d_1788371035363": {
+    "processed_at": "2026-09-02T17:43:55.435Z",
+    "payment_id": "pay_scen_d_1788371035363",
+    "action": "escalate",
+    "status": "blocked"
+  },
+  "evt_scen_e_1788371035363": {
+    "processed_at": "2026-09-02T17:43:55.451Z",
+    "payment_id": "pay_scen_e_1788371035363",
+    "action": "escalate",
+    "status": "blocked"
+  },
+  "evt_scen_f_dup_1788371035363": {
+    "processed_at": "2026-09-02T17:43:55.464Z",
+    "payment_id": "pay_scen_f_1788371035363",
+    "action": "reminder",
+    "status": "executed"
+  },
+  "evt_scen_g_1788371035363": {
+    "processed_at": "2026-09-02T17:43:55.474Z",
+    "payment_id": "pay_demo_captured_69",
+    "status": "captured"
+  },
+  "evt_scen_h_1788371035363": {
+    "processed_at": "2026-09-02T17:43:55.488Z",
+    "payment_id": "pay_demo_maxattempts_257",
+    "action": "wait",
+    "status": "blocked"
+  },
+  "evt_scen_i_1788371035363": {
+    "processed_at": "2026-09-02T17:43:55.502Z",
+    "payment_id": "pay_demo_valid_640",
+    "action": "wait",
+    "status": "blocked"
+  },
+  "evt_failed_1788371039179": {
+    "processed_at": "2026-09-02T17:43:59.197Z",
+    "payment_id": "pay_wh_test_1788371039179",
+    "action": "reminder",
+    "status": "executed"
+  },
+  "evt_captured_1788371039203": {
+    "processed_at": "2026-09-02T17:43:59.206Z",
+    "payment_id": "pay_captured_test_1788371039203",
+    "status": "captured"
   }
 }

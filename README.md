@@ -1,7 +1,8 @@
 # RECLAIM
 ## AI Revenue Recovery Agent for Merchants
+### Created by RUSHIKESH.STUDIO for Razorpay AI Buildathon
 
-RECLAIM helps merchants recover revenue from failed payments by analyzing failure context and historical outcomes, selecting the most appropriate recovery intervention, checking deterministic safety rules, executing the permitted action in Razorpay Test Mode, and recording an auditable decision trail.
+RECLAIM helps merchants recover revenue from failed payments by analyzing failure context and historical outcomes using GenAI and empirical decision models, checking deterministic safety rules, executing permitted recovery actions in Razorpay Test Mode, and recording an auditable compliance decision trail.
 
 ---
 
@@ -17,269 +18,140 @@ When a customer's payment fails at checkout, traditional merchant payment gatewa
 
 ## 💡 Solution
 
-RECLAIM introduces an **Empirical AI Revenue Recovery Agent** that acts as an intelligent layer between payment gateway failure events and merchant recovery workflows:
+RECLAIM introduces an **Empirical GenAI Revenue Recovery Agent** that acts as an intelligent layer between payment gateway failure events and merchant recovery workflows:
 
-1. **Empirical Probabilities**: Evaluates historical failure recovery probabilities across matching failure reasons and customer contexts rather than guessing.
+1. **GenAI & Empirical Probability Reasoning**: Evaluates historical failure recovery probabilities across matching failure reasons and customer contexts using structured GenAI (`gemini-1.5-flash`) with safe deterministic fallback.
 2. **Expected Yield Optimization**: Evaluates candidate interventions (`REMINDER`, `RETRY_LATER`, `PAYMENT_METHOD_UPDATE`, `IMMEDIATE_RETRY`) and selects the action maximizing expected recovery yield:
    $$E = \text{Amount} \times P(\text{Recovery} \mid \text{Intervention}, \text{Reason})$$
 3. **Safety & Policy Guardrails**: Enforces 5 deterministic safety rules before executing any action. If safety policies fail, RECLAIM halts automated execution (`DO NOT ACT`) and returns `STOP`, `WAIT`, or `ESCALATE`.
 4. **Razorpay Test Mode Execution**: Generates real Razorpay payment links via the official Node SDK or simulated test adapter.
-5. **Traceable Compliance Trail**: Logs every decision, policy state, and dispatch to an immutable audit record.
+5. **Lifecycle Event Handling**: Handles both `payment.failed` (evaluating recovery) and `payment.captured` (marking payment as captured and halting further interventions).
+6. **Traceable Compliance Trail**: Logs every decision, policy state, and dispatch to an immutable audit record.
 
 ---
 
 ## ⚙️ How RECLAIM Works
 
 ```
-Merchant Dashboard (React / Vite)
-        ↓ POST /api/recovery/analyze
-Express API Server (Node.js)
-        ↓
-Recovery Decision Engine (Empirical EV Maximization)
-        ↓
-Safety / Policy Engine (Deterministic Rule Checks)
-        ↓
-Razorpay Executor (Node SDK / Test-Mode Adapter)
+Razorpay Webhook (payment.failed / payment.captured)
         ↓ POST /api/webhooks/razorpay
-Audit Logger (data/audit_logs.json)
+HMAC SHA256 Signature Verification & Idempotency Check
+        ↓
+Payment Failure Context Extraction
+        ↓
+GenAI Recovery Reasoning (Gemini 1.5 Flash + LOOCV Baseline)
+        ↓
+Deterministic Safety Policy Engine (5 Rules Enforced)
+        ↓
+Allowed / Wait / Stop / Escalate
+        ↓
+Razorpay Test Mode Action (SDK Payment Link / Simulation)
+        ↓
+Persistent Audit Trail Logging (data/audit_logs.json)
 ```
 
 ---
 
-## 🏗️ System Architecture
+## 🤖 GenAI Integration & Safe Fallback Architecture
 
-- **Merchant Console (`/frontend-v2`)**: A modern fintech dashboard built with React 18, Vite 5, and Tailwind CSS. Provides an Overview Command Center, Searchable Failed Payments Workspace, AI Decision Console, Analytics LOOCV Proof, and Audit Logs.
-- **API Gateway (`src/server.js`, `src/routes/`)**: Express server providing health checks, single payment analysis, batch analysis, out-of-sample LOOCV validation, Razorpay webhooks, and audit retrieval.
-- **Decision Engine (`src/engine/decisionEngine.js`)**: Computes empirical recovery probabilities from historical dataset failures (`data/payments.json`) and calculates optimal candidate expected values.
-- **Safety Policy Engine (`src/engine/policyEngine.js`, `src/services/policyService.js`)**: Evaluates deterministic rules to prevent over-contacting, illegal retries, or duplicate executions.
-- **Razorpay Integration (`src/services/razorpayService.js`)**: Official Node SDK client with HMAC SHA256 webhook signature verification and simulated test-mode fallback.
-- **Audit Logger (`src/utils/auditLogger.js`)**: Maintains persistent, immutable records of all recovery actions in `data/audit_logs.json`.
+GenAI is an integral component of RECLAIM's recovery decision engine:
 
----
-
-## 🧠 AI / Decision Engine
-
-For any failed payment, RECLAIM analyzes the failure context:
-- `payment_id`
-- `amount`
-- `failure_reason` (`insufficient_funds`, `expired_card`, `bank_declined`, `network_error`)
-- `customer_history` (`previously_recovered_after_reminder`, `first_time_failure`, `frequent_failed_attempts`, `active_subscriber`)
-
-The engine computes historical success rates for all candidate recovery interventions:
-- **`REMINDER`**: Dispatches notification/payment link (Optimal for `insufficient_funds` & `previously_recovered`).
-- **`RETRY_LATER`**: Schedules delayed gateway retry (Optimal for `network_error` & `bank_declined`).
-- **`PAYMENT_METHOD_UPDATE`**: Requests card/payment method update (Optimal for `expired_card`).
-- **`IMMEDIATE_RETRY`**: Retries payment immediately.
-
-The intervention yielding the maximum expected recovery amount is selected as the recommended action.
+1. **Structured Input**: Receives structured payment failure context (`amount`, `failure_reason`, `customer_history`, `attempt_count`) and empirical historical outcome rates.
+2. **Structured Recommendation**: Prompts Gemini 1.5 Flash to generate JSON containing:
+   ```json
+   {
+     "recommended_action": "reminder",
+     "confidence": 0.69,
+     "reason": "Historical outcomes indicate insufficient funds recover most frequently after a friendly reminder rather than immediate retries.",
+     "expected_recovery_value": 689.31
+   }
+   ```
+3. **Schema Validation**: Output is strictly schema-validated before passing to policy checks.
+4. **Deterministic Safe Fallback**: If the GenAI API is un-configured, times out (>4s), returns invalid JSON, or fails, RECLAIM seamlessly falls back to the deterministic LOOCV empirical decision engine (`DecisionEngine.analyze`) to prevent risky or unguided executions.
+5. **Safety Engine Gatekeeper**: GenAI recommendations **NEVER** execute directly. They must pass through the 5 deterministic safety policy rules (`PAYMENT_SUCCESS`, `RECOVERY_WINDOW`, `MAX_ATTEMPTS`, `COOLDOWN`, `LOW_CONFIDENCE`) before any recovery link is dispatched.
 
 ---
 
-## 🛡️ Safety & Policy Rules
+## 🛡️ Safety & Policy Engine Rules
 
-The Decision Engine recommends *what is likely to work*; the Safety & Policy Engine decides *whether execution is allowed*.
-
-RECLAIM enforces 5 deterministic safety rules:
-
-1. **`PAYMENT_SUCCESS`**: If payment status is `captured` or `success`, block all further recovery actions (`reason: payment_already_recovered`, `action: stop`).
-2. **`RECOVERY_WINDOW`**: If payment failure is older than 72 hours, block recovery (`reason: payment_expired_window`, `action: stop`).
-3. **`MAX_ATTEMPTS`**: If recovery attempts $\ge 3$, block automated recovery (`reason: maximum_recovery_attempts_reached`, `action: escalate`).
-4. **`COOLDOWN`**: Block repeated recovery actions within a 24-hour window (`reason: recovery_cooldown_active`, `action: wait`).
-5. **`LOW_CONFIDENCE`**: If decision probability confidence is insufficient, block automated dispatch (`reason: low_decision_confidence`, `action: escalate`).
-
-> [!IMPORTANT]
-> **DO NOT ACT Rationale**: When a safety rule triggers, RECLAIM explicitly halts automated execution (`DO NOT ACT`), preventing spam, duplicate charges, or customer harassment.
+| Policy Rule | Rule Rationale | Trigger Condition | System Action |
+| :--- | :--- | :--- | :--- |
+| **1. `PAYMENT_SUCCESS`** | Payment already captured/recovered | Status is `captured` or `success` | `STOP` execution |
+| **2. `RECOVERY_WINDOW`** | Payment failure too old | Failure occurred $>72\text{h}$ ago | `STOP` execution |
+| **3. `MAX_ATTEMPTS`** | Excessive contact prevention | Prior recovery attempts $\ge 3$ | `ESCALATE` to merchant |
+| **4. `COOLDOWN`** | Customer contact fatigue | Action dispatched within past $24\text{h}$ | `WAIT` (active cooldown) |
+| **5. `LOW_CONFIDENCE`** | Decision uncertainty | Recommendation probability $< 30\%$ | `ESCALATE` to human operator |
 
 ---
 
-## 💳 Razorpay Integration & Security
+## 💳 Razorpay Test Mode Setup & Environment Variables
 
-- **Server-Side Credentials Only**: `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` are stored strictly on the server in environment variables (`.env`). Frontend client code **NEVER** receives private API keys or secrets.
-- **HMAC SHA256 Webhook Verification**: `POST /api/webhooks/razorpay` verifies incoming request signatures using `crypto.createHmac('sha256', secret)` on header `x-razorpay-signature`.
-- **Test Mode & Simulation Adapter**: When valid Razorpay credentials are present, the server uses official `razorpay` SDK `client.paymentLink.create(...)`. When using test defaults, the server uses a simulated Test Mode adapter formatting test URLs (`https://rzp.io/i/test_link_...`).
+### Required Environment Variables (`.env`)
 
-> [!WARNING]
-> **Test Mode Disclaimer**: Payment links generated during demos operate in Razorpay Test Mode or Simulation. Generating a payment link does **NOT** mean the customer has paid, and no real money is charged.
-
----
-
-## 🔄 Idempotency
-
-RECLAIM checks `data/processed_events.json` prior to processing any webhook event. If a duplicate webhook event ID is received:
-- Processing is skipped (`status: "already_processed"`).
-- Duplicate Razorpay action dispatches are prevented.
-- UI button states automatically disable after execution to prevent duplicate user clicks.
-
----
-
-## 📊 Out-of-Sample Validation & Statistical Proof
-
-RECLAIM uses **Leave-One-Out Cross-Validation (LOOCV)** backtesting to prevent in-sample selection bias. Each payment record is sequentially held out from the training set, trained on the remaining $N-1$ samples, and evaluated against held-out actual outcomes.
-
-### Verified Benchmark Results (54 Dataset Records):
-
-- **Dataset Size**: **54** historical failed payment records.
-- **Primary Out-of-Sample LOOCV Recovery Rate**: **50.0%** actual recovery on held-out samples.
-- **Baseline Naive Recovery Rate** (Always Immediate Retry): **15.7%** actual recovery.
-- **Net Out-of-Sample Lift**: **+34.3 percentage points** (217.6% relative lift over naive retry).
-- **Prediction MAE**: **0.505** Mean Absolute Error.
-- **Secondary In-Sample Expected Value Rate**: **79.1%** expected recovery yield ($₹54,584$ expected recovery of $₹68,046$ revenue at risk).
-
-> [!NOTE]
-> **Demo Data Disclaimer**: Evaluated on synthetic historical payment dataset (`data/payments.json`) for Buildathon prototype demonstration. Does not represent live Razorpay production metrics.
-
----
-
-## 🎬 11-Step Buildathon Demo Flow
-
-1. **Open Dashboard**: Navigate to `http://localhost:5174`.
-2. **Review Overview KPIs**: View `₹68,046` Revenue at Risk, `₹54,584` Expected Recovery, `54` Failed Payments, and `+34.3 pts` Lift.
-3. **Select Failed Payment**: Click any row in **Payments Needing Recovery** (e.g. `pay_demo_001` - `₹999` `insufficient_funds`).
-4. **Inspect AI Decision Console**: View the 3-step visual flow (`FAILED` $\rightarrow$ `ANALYZING` $\rightarrow$ `RECOVERY ACTION`).
-5. **View Recommendation**: See `REMINDER` recommended action, `69.0%` recovery probability, and `₹689.31` expected yield.
-6. **Review Rationale**: Read empirical reason (*"9 of 13 similar historical reminder attempts recovered"*).
-7. **Inspect Alternatives**: See candidate interventions with `BEST OPTION` badge.
-8. **Check Safety Rules**: Verify 5 green safety check marks (`✓ Payment not recovered`, `✓ Recovery window <72h`, `✓ Cooldown >24h`, `✓ Attempts <3`, `✓ Confidence acceptable`).
-9. **Click Execute Recovery**: Click `[ EXECUTE RECOVERY ]`.
-10. **View Execution Timeline**: Watch live lifecycle dispatches (`✓ Decision made` $\rightarrow$ `✓ Recovery action dispatched` $\rightarrow$ `✓ Razorpay test-mode action created` $\rightarrow$ `✓ Audit event recorded`) and copy test payment link.
-11. **Verify Audit & Analytics**: Click `[ View Audit Log ]` to inspect the compliance trail, then open **Analytics** to view LOOCV validation proof.
-
----
-
-## 💻 Tech Stack
-
-- **Backend**: Node.js, Express 5, Razorpay Node SDK, `dotenv`, `cors`.
-- **Frontend**: React 18, Vite 5, Tailwind CSS 3, Inter font family.
-- **Data Persistence**: JSON file storage (`data/payments.json`, `data/audit_logs.json`, `data/processed_events.json`).
-
----
-
-## 📂 Project Structure
-
-```
-reclaim/
-├── data/
-│   ├── payments.json            # 54 historical payment failure records
-│   ├── audit_logs.json          # Persistent audit trail log
-│   └── processed_events.json    # Idempotency event tracking
-├── docs/
-│   ├── architecture.md          # Architecture documentation
-│   ├── demo-flow.md              # 90-second demo script
-│   ├── safety.md                # Safety rules & policy engine docs
-│   └── evaluation.md            # LOOCV validation mathematics docs
-├── frontend-v2/                 # Production RECLAIM Merchant Dashboard
-│   ├── src/
-│   │   ├── components/          # Reusable SaaS UI components
-│   │   ├── pages/               # Overview, Payments, Recovery, Analytics, Audit
-│   │   ├── services/api.js      # Backend API client
-│   │   ├── App.jsx              # Application shell & router
-│   │   └── main.jsx             # Entry point
-│   ├── package.json
-│   └── vite.config.js
-├── scripts/
-│   ├── demo.js                  # Policy scenario demo script
-│   ├── validate.js              # LOOCV single-payment validation script
-│   ├── batch.js                 # Batch expected recovery script
-│   ├── batch-validate.js        # LOOCV batch backtesting script
-│   └── verify-9-scenarios.js    # 9 failure & policy scenario test script
-├── src/
-│   ├── engine/                  # Decision Engine & Policy Engine
-│   ├── routes/                  # Health, Recovery, & Webhook routes
-│   ├── services/                # Recovery, Razorpay, Validation services
-│   ├── utils/                   # Audit Logger & Helper utilities
-│   └── server.js                # Express Server entry point
-├── tests/                       # Unit tests (policy.test.js)
-├── .env.example                 # Environment variable template
-├── .gitignore                   # Git exclusion rules
-├── package.json                 # Project dependencies & scripts
-└── README.md                    # Product documentation
-```
-
----
-
-## 🛠️ Local Setup Instructions
-
-### Prerequisites
-- Node.js (v18+ recommended)
-- npm (v9+ recommended)
-
-### 1. Clone & Install Dependencies
-```bash
-git clone https://github.com/your-username/reclaim.cmd.git
-cd reclaim
-
-# Install backend dependencies
-npm install
-
-# Install frontend-v2 dependencies
-cd frontend-v2
-npm install
-cd ..
-```
-
-### 2. Configure Environment Variables
-Copy `.env.example` to `.env`:
-```bash
-cp .env.example .env
-```
-
-Edit `.env` if using real Razorpay Test Mode credentials:
 ```env
 PORT=5000
-RAZORPAY_KEY_ID=rzp_test_your_key_id
-RAZORPAY_KEY_SECRET=your_razorpay_secret
-RAZORPAY_WEBHOOK_SECRET=your_webhook_secret
+RAZORPAY_KEY_ID=rzp_test_TXB4n3qXCLL8aN
+RAZORPAY_KEY_SECRET=pm3DZe7jQnNoM7Vh54KfY2Dz
+RAZORPAY_WEBHOOK_SECRET=reclaim_wh_sec_test_2026
 VITE_API_BASE_URL=http://localhost:5000
-```
-*(If left as defaults, RECLAIM operates in simulated Test Mode adapter format).*
-
-### 3. Start Application
-
-#### Terminal 1: Express Backend (Port 5000)
-```bash
-npm start
+GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
-#### Terminal 2: V2 Merchant Dashboard (Port 5174)
-```bash
-npm run frontend-v2
-```
+### Webhook Configuration
 
-Open dashboard in browser: **`http://localhost:5174`**
+- **Webhook Endpoint**: `POST /api/webhooks/razorpay`
+- **Supported Events**:
+  - `payment.failed`: Triggers RECLAIM AI recovery pipeline.
+  - `payment.captured`: Marks payment as recovered, halts future recovery actions.
 
 ---
 
-## 🧪 Testing & Verification Commands
-
-RECLAIM includes a complete verification test suite using the exact project scripts:
+## 🧪 Testing Commands
 
 ```bash
-# 1. Run Policy & Webhook Pipeline Demo Suite
+# 1. Run Webhook Pipeline & Safety Engine Scenarios
 npm test
 
-# 2. Run LOOCV Single-Payment Validation
+# 2. Run Comprehensive Automated Integration Test Suite (19 Tests)
+node tests/integration.test.js
+
+# 3. Run LOOCV Counterfactual Validation (54 Samples)
 npm run validate
 
-# 3. Run Batch Recovery Expected Value Analysis
+# 4. Run Batch Recovery Yield Analysis
 npm run batch
 
-# 4. Run Out-of-Sample LOOCV Batch Backtest
+# 5. Run Out-of-Sample LOOCV Batch Backtesting
 npm run batch-validate
 
-# 5. Run Policy Engine Unit Tests
+# 6. Run Safety Policy Engine Unit Tests
 node tests/policy.test.js
 
-# 6. Run 9 Failure & Policy Scenario Integration Test
+# 7. Run 9 Failure & Policy Scenario Tests
 node scripts/verify-9-scenarios.js
 
-# 7. Build Production Frontend-V2 Bundle
+# 8. Run Production Bundle Build
 npx vite build --config frontend-v2/vite.config.js frontend-v2
 ```
 
 ---
 
-## ⚠️ Limitations & Future Roadmap
+## 🔒 Security & Idempotency
 
-- **Dataset Scale**: Currently evaluated on a 54-sample synthetic historical failure dataset for Buildathon prototype demonstration.
-- **Production Gateways**: Currently interfaces with Razorpay Node SDK Test Mode. Production deployment requires webhooks connected to live Merchant ID webhooks.
-- **Machine Learning Extensions**: Future iterations can integrate dynamic bandit algorithms (e.g. LinUCB / Thompson Sampling) to continuously learn optimal interventions as live merchant recovery volume scales.
+- **Zero Exposed Secrets**: Server-side credentials (`RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`) reside strictly in `.env`. Zero secrets are exposed in frontend code, browser bundles, git commits, or API responses.
+- **HMAC SHA256 Webhook Verification**: `x-razorpay-signature` headers are verified using timing-safe buffer comparison.
+- **Idempotency**: Duplicate webhook payloads with identical event IDs return `status: "already_processed"` to guarantee zero double dispatches.
+
+---
+
+## 🚀 Public Live Deployment
+
+- **Live Frontend Application**: [https://reclaim-bay.vercel.app/](https://reclaim-bay.vercel.app/)
+- **GitHub Repository**: [https://github.com/rushi0796/ReClaim.git](https://github.com/rushi0796/ReClaim.git)
+
+---
+
+## ⚠️ Test Mode & Demo Data Disclaimer
+
+- **RECLAIM** operates in **RAZORPAY TEST MODE** and uses synthetic historical payment datasets for prototype demonstration.
+- No real customer money is charged or moved. All generated Payment Links are test mode links (`https://rzp.io/i/...`).

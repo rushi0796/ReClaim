@@ -9,7 +9,7 @@ class RazorpayService {
     const keyId = process.env.RAZORPAY_KEY_ID;
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
-    if (keyId && keySecret && !keyId.includes('dummy')) {
+    if (keyId && keySecret && keyId.startsWith('rzp_') && !keyId.includes('dummy') && !keyId.includes('your_')) {
       return new Razorpay({
         key_id: keyId,
         key_secret: keySecret
@@ -55,7 +55,8 @@ class RazorpayService {
           short_url: link.short_url,
           status: link.status,
           is_simulated: false,
-          execution_mode: 'RAZORPAY_TEST_MODE_SDK'
+          execution_mode: 'RAZORPAY_TEST_MODE_SDK',
+          payment_url: link.short_url
         };
       } catch (error) {
         console.warn('Razorpay SDK Payment Link creation warning (falling back to simulated test link):', error.message);
@@ -64,9 +65,11 @@ class RazorpayService {
 
     // Simulation Adapter Fallback for Test Mode
     const simulatedId = `plink_test_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+    const shortUrl = `https://rzp.io/i/test_link_${simulatedId}`;
     return {
       link_id: simulatedId,
-      short_url: `https://rzp.io/i/test_link_${simulatedId}`,
+      short_url: shortUrl,
+      payment_url: shortUrl,
       status: 'created',
       amount_in_inr: amount,
       description: description || 'RECLAIM Recovery Link [SIMULATED TEST MODE]',
@@ -89,9 +92,16 @@ class RazorpayService {
         .createHmac('sha256', secret)
         .update(bodyString)
         .digest('hex');
-      return crypto.timingSafeEqual(Buffer.from(expectedSignature), Buffer.from(signature));
+
+      const expectedBuf = Buffer.from(expectedSignature);
+      const sigBuf = Buffer.from(signature);
+
+      if (expectedBuf.length !== sigBuf.length) {
+        return false;
+      }
+      return crypto.timingSafeEqual(expectedBuf, sigBuf);
     } catch (error) {
-      console.error('Webhook signature verification failed:', error.message);
+      console.error('Webhook signature verification error:', error.message);
       return false;
     }
   }

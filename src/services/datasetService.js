@@ -1,10 +1,10 @@
 const fs = require('fs');
 const path = require('path');
+const PersistentStorageService = require('./persistentStorageService');
 
 const HISTORICAL_DATA_FILE = path.join(__dirname, '../../data/payments.json');
-const LIVE_DATA_FILE = path.join(__dirname, '../../data/live_payments.json');
 
-// In-memory cache fallback for live webhook payments in serverless environments
+// In-memory cache fallback for live webhook payments
 const inMemoryLivePayments = new Map();
 
 /**
@@ -34,21 +34,15 @@ class DatasetService {
   static getLivePayments() {
     const list = Array.from(inMemoryLivePayments.values());
     try {
-      if (fs.existsSync(LIVE_DATA_FILE)) {
-        const content = fs.readFileSync(LIVE_DATA_FILE, 'utf8');
-        if (content.trim()) {
-          const fileRecords = JSON.parse(content);
-          if (Array.isArray(fileRecords)) {
-            // Merge file records with in-memory records, avoiding duplicates
-            const fileMap = new Map();
-            fileRecords.forEach(r => fileMap.set(r.payment_id, r));
-            inMemoryLivePayments.forEach((r, id) => fileMap.set(id, r));
-            return Array.from(fileMap.values());
-          }
-        }
+      const storedRecords = PersistentStorageService.getJSONSync('reclaim:live_payments', 'live_payments.json', []);
+      if (Array.isArray(storedRecords)) {
+        const fileMap = new Map();
+        storedRecords.forEach(r => fileMap.set(r.payment_id, r));
+        inMemoryLivePayments.forEach((r, id) => fileMap.set(id, r));
+        return Array.from(fileMap.values());
       }
     } catch (error) {
-      console.error('Error reading live payments file:', error.message);
+      console.error('Error reading live payments:', error.message);
     }
     return list;
   }
@@ -88,9 +82,9 @@ class DatasetService {
         updatedList = [fullRecord, ...existingList];
       }
 
-      fs.writeFileSync(LIVE_DATA_FILE, JSON.stringify(updatedList, null, 2), 'utf8');
+      PersistentStorageService.setJSONSync('reclaim:live_payments', 'live_payments.json', updatedList);
     } catch (error) {
-      // In serverless read-only environment, inMemoryLivePayments handles runtime storage
+      // In-memory map serves as immediate runtime cache
     }
 
     return fullRecord;

@@ -853,5 +853,22 @@
     "payment_id": "pay_demo_valid_640",
     "action": "wait",
     "status": "blocked"
+  },
+  "event_txh5_002": {
+    "processed_at": "2026-09-02T19:10:51.929Z",
+    "payment_id": "pay_TXH5PHvyCW3Nee",
+    "action": "payment_method_update",
+    "status": "executed"
+  },
+  "evt_failed_1788376254747": {
+    "processed_at": "2026-09-02T19:10:54.761Z",
+    "payment_id": "pay_wh_test_1788376254747",
+    "action": "reminder",
+    "status": "executed"
+  },
+  "evt_captured_1788376254772": {
+    "processed_at": "2026-09-02T19:10:54.779Z",
+    "payment_id": "pay_captured_test_1788376254772",
+    "status": "captured"
   }
 }

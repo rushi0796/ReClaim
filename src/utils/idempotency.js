@@ -1,7 +1,4 @@
-const fs = require('fs');
-const path = require('path');
-
-const IDEMPOTENCY_FILE = path.join(__dirname, '../../data/processed_events.json');
+const PersistentStorageService = require('../services/persistentStorageService');
 
 // In-memory cache fallback for serverless environments
 const inMemoryProcessedEvents = new Map();
@@ -15,15 +12,10 @@ function isEventProcessed(eventId) {
   if (!eventId) return false;
   if (inMemoryProcessedEvents.has(eventId)) return true;
   try {
-    if (fs.existsSync(IDEMPOTENCY_FILE)) {
-      const content = fs.readFileSync(IDEMPOTENCY_FILE, 'utf8');
-      if (content.trim()) {
-        const processedMap = JSON.parse(content);
-        if (processedMap[eventId]) {
-          inMemoryProcessedEvents.set(eventId, processedMap[eventId]);
-          return true;
-        }
-      }
+    const processedMap = PersistentStorageService.getJSONSync('reclaim:processed_events', 'processed_events.json', {});
+    if (processedMap && typeof processedMap === 'object' && processedMap[eventId]) {
+      inMemoryProcessedEvents.set(eventId, processedMap[eventId]);
+      return true;
     }
   } catch (error) {
     console.error('Error checking idempotency:', error.message);
@@ -44,18 +36,11 @@ function markEventProcessed(eventId, metadata = {}) {
   };
   inMemoryProcessedEvents.set(eventId, eventRecord);
   try {
-    let processedMap = {};
-    if (fs.existsSync(IDEMPOTENCY_FILE)) {
-      const content = fs.readFileSync(IDEMPOTENCY_FILE, 'utf8');
-      if (content.trim()) {
-        processedMap = JSON.parse(content);
-      }
-    }
-
+    const processedMap = PersistentStorageService.getJSONSync('reclaim:processed_events', 'processed_events.json', {});
     processedMap[eventId] = eventRecord;
-    fs.writeFileSync(IDEMPOTENCY_FILE, JSON.stringify(processedMap, null, 2), 'utf8');
+    PersistentStorageService.setJSONSync('reclaim:processed_events', 'processed_events.json', processedMap);
   } catch (error) {
-    // In serverless read-only environment, inMemoryProcessedEvents handles runtime idempotency
+    // In-memory map handles runtime deduplication
   }
 }
 

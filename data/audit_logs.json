@@ -1,5 +1,98 @@
 [
   {
+    "audit_id": "aud_1788376254782_285",
+    "timestamp": "2026-09-02T19:10:54.782Z",
+    "event_type": "PAYMENT_CAPTURED_RECOVERY_STOPPED",
+    "raw_event": "payment.captured",
+    "event_id": "evt_captured_1788376254772",
+    "payment_id": "pay_captured_test_1788376254772",
+    "amount": 1499,
+    "currency": "INR",
+    "failure_reason": "none",
+    "customer_history": null,
+    "recommended_action": "stop",
+    "recovery_probability": 1,
+    "expected_recovered_amount": 1499,
+    "policy_evaluation": {
+      "allowed": false,
+      "reason": "payment_already_recovered",
+      "action": "stop"
+    },
+    "execution": {
+      "action": "stop",
+      "status": "captured",
+      "execution_mode": "PAYMENT_CAPTURED_RECOVERY_STOPPED",
+      "is_simulated": true,
+      "timestamp": "2026-09-02T19:10:54.779Z"
+    }
+  },
+  {
+    "audit_id": "aud_1788376254765_258",
+    "timestamp": "2026-09-02T19:10:54.765Z",
+    "event_type": "RECOVERY_ACTION_EXECUTED",
+    "raw_event": "payment.failed",
+    "event_id": "evt_failed_1788376254747",
+    "payment_id": "pay_wh_test_1788376254747",
+    "amount": 999,
+    "currency": "INR",
+    "failure_reason": "insufficient_funds",
+    "customer_history": "previously_recovered_after_reminder",
+    "recommended_action": "reminder",
+    "recovery_probability": 0.69,
+    "expected_recovered_amount": 689.31,
+    "policy_evaluation": {
+      "allowed": true,
+      "reason": "policy_checks_passed",
+      "action": "execute"
+    },
+    "execution": {
+      "action": "reminder",
+      "status": "executed",
+      "execution_mode": "RAZORPAY_TEST_MODE_SIMULATED",
+      "is_simulated": true,
+      "timestamp": "2026-09-02T19:10:54.761Z",
+      "details": {
+        "payment_id": "pay_wh_test_1788376254747",
+        "payment_link_id": "plink_test_1788376254761_407",
+        "payment_url": "https://rzp.io/i/test_link_plink_test_1788376254761_407",
+        "message": "Razorpay Test Mode Payment Link generated and reminder dispatched [SIMULATED]."
+      }
+    }
+  },
+  {
+    "audit_id": "aud_1788376251932_649",
+    "timestamp": "2026-09-02T19:10:51.932Z",
+    "event_type": "RECOVERY_ACTION_EXECUTED",
+    "raw_event": "payment.failed",
+    "event_id": "event_txh5_002",
+    "payment_id": "pay_TXH5PHvyCW3Nee",
+    "amount": 1499,
+    "currency": "INR",
+    "failure_reason": "expired_card",
+    "customer_history": "first_time_failure",
+    "recommended_action": "payment_method_update",
+    "recovery_probability": 0.8,
+    "expected_recovered_amount": 1199.2,
+    "policy_evaluation": {
+      "allowed": true,
+      "reason": "policy_checks_passed",
+      "action": "execute"
+    },
+    "execution": {
+      "action": "payment_method_update",
+      "status": "executed",
+      "execution_mode": "RAZORPAY_TEST_MODE_SIMULATED",
+      "is_simulated": true,
+      "timestamp": "2026-09-02T19:10:51.929Z",
+      "details": {
+        "payment_id": "pay_TXH5PHvyCW3Nee",
+        "update_link_id": "update_link_test_1788376251929",
+        "update_url": "https://rzp.io/i/update_method_update_link_test_1788376251929",
+        "message": "Payment method update request generated for customer [TEST MODE - SIMULATED]."
+      }
+    }
+  },
+  {
     "log_id": "log_1788089876442_850",
     "timestamp": "2026-08-30T11:37:56.442Z",
     "payment_id": "pay_demo_001",

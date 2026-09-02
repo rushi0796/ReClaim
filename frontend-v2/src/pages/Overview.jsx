@@ -104,11 +104,14 @@ export default function Overview({ batchData, batchValidationData, payments = []
       {/* Top Header Section */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-200 gap-3">
         <div>
-          <div className="flex items-center space-x-2">
+          <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight">RECLAIM</h1>
             <span className="text-slate-300 font-bold">•</span>
             <span className="text-sm font-semibold text-slate-600">AI Revenue Recovery</span>
-            <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-mono text-[10px] font-bold border border-slate-200 ml-2">
+            <span className="text-[10px] text-slate-400 font-mono uppercase tracking-wider font-semibold ml-1">
+              by RUSHIKESH.STUDIO
+            </span>
+            <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-mono text-[10px] font-bold border border-slate-200 ml-1">
               TEST MODE
             </span>
           </div>

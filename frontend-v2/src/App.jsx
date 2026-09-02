@@ -129,6 +129,7 @@ export default function App() {
       <Topbar
         setIsMobileOpen={setIsMobileOpen}
         activePage={activePage}
+        setActivePage={setActivePage}
       />
 
       {/* Sidebar for Desktop & Drawer for Mobile */}
@@ -141,8 +142,26 @@ export default function App() {
       />
 
       {/* Main Content Area Wrapper */}
-      <div className="flex-1 min-w-0">
-        <main className="max-w-[1280px] w-full mx-auto px-4 sm:px-6 md:px-8 py-6 space-y-6">
+      <div className="flex-1 min-w-0 flex flex-col justify-between">
+        {/* Desktop Header Strip */}
+        <header className="hidden lg:flex items-center justify-between px-8 h-14 bg-white border-b border-slate-200">
+          <div className="flex items-center space-x-2">
+            <span className="font-bold text-xs tracking-tight text-slate-900">RECLAIM</span>
+            <span className="text-slate-300 font-bold text-xs">•</span>
+            <span className="text-xs text-slate-500 font-medium">AI Revenue Recovery</span>
+          </div>
+
+          <div className="flex items-center space-x-3 text-xs font-mono">
+            <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px] font-semibold border border-slate-200">
+              TEST MODE
+            </span>
+            <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
+              RUSHIKESH.STUDIO
+            </span>
+          </div>
+        </header>
+
+        <main className="max-w-[1280px] w-full mx-auto px-4 sm:px-6 md:px-8 py-6 space-y-6 flex-1">
           {isLoading ? (
             <div className="py-12 text-center space-y-3">
               <div className="w-7 h-7 rounded-full border-2 border-slate-900 border-t-transparent animate-spin mx-auto"></div>
@@ -152,6 +171,12 @@ export default function App() {
             renderPage()
           )}
         </main>
+
+        {/* Minimal Footer */}
+        <footer className="border-t border-slate-200/80 bg-white py-3 px-6 text-center text-[11px] text-slate-500 font-mono flex items-center justify-between max-w-[1280px] w-full mx-auto">
+          <span>© 2026 RUSHIKESH.STUDIO</span>
+          <span className="text-slate-400">Built with ReClaim</span>
+        </footer>
       </div>
     </div>
   );

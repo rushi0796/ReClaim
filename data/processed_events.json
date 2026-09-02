@@ -502,5 +502,77 @@
     "payment_id": "pay_demo_valid_640",
     "action": "wait",
     "status": "blocked"
+  },
+  "event_policy_valid_1788325752286": {
+    "processed_at": "2026-09-02T05:09:12.328Z",
+    "payment_id": "pay_demo_valid_958",
+    "action": "reminder",
+    "status": "executed"
+  },
+  "event_policy_cooldown_1788325752342": {
+    "processed_at": "2026-09-02T05:09:12.433Z",
+    "payment_id": "pay_demo_valid_958",
+    "action": "wait",
+    "status": "blocked"
+  },
+  "event_policy_captured_1788325752444": {
+    "processed_at": "2026-09-02T05:09:12.464Z",
+    "payment_id": "pay_demo_captured_925",
+    "action": "stop",
+    "status": "blocked"
+  },
+  "evt_scen_a_1788325807676": {
+    "processed_at": "2026-09-02T05:10:07.741Z",
+    "payment_id": "pay_scen_a_1788325807676",
+    "action": "reminder",
+    "status": "executed"
+  },
+  "evt_scen_b_1788325807676": {
+    "processed_at": "2026-09-02T05:10:07.820Z",
+    "payment_id": "pay_scen_b_1788325807676",
+    "action": "payment_method_update",
+    "status": "executed"
+  },
+  "evt_scen_c_1788325807676": {
+    "processed_at": "2026-09-02T05:10:07.931Z",
+    "payment_id": "pay_scen_c_1788325807676",
+    "action": "escalate",
+    "status": "blocked"
+  },
+  "evt_scen_d_1788325807676": {
+    "processed_at": "2026-09-02T05:10:08.055Z",
+    "payment_id": "pay_scen_d_1788325807676",
+    "action": "escalate",
+    "status": "blocked"
+  },
+  "evt_scen_e_1788325807676": {
+    "processed_at": "2026-09-02T05:10:08.134Z",
+    "payment_id": "pay_scen_e_1788325807676",
+    "action": "escalate",
+    "status": "blocked"
+  },
+  "evt_scen_f_dup_1788325807676": {
+    "processed_at": "2026-09-02T05:10:08.185Z",
+    "payment_id": "pay_scen_f_1788325807676",
+    "action": "reminder",
+    "status": "executed"
+  },
+  "evt_scen_g_1788325807676": {
+    "processed_at": "2026-09-02T05:10:08.269Z",
+    "payment_id": "pay_demo_captured_69",
+    "action": "stop",
+    "status": "blocked"
+  },
+  "evt_scen_h_1788325807676": {
+    "processed_at": "2026-09-02T05:10:08.340Z",
+    "payment_id": "pay_demo_maxattempts_257",
+    "action": "reminder",
+    "status": "executed"
+  },
+  "evt_scen_i_1788325807676": {
+    "processed_at": "2026-09-02T05:10:08.461Z",
+    "payment_id": "pay_demo_valid_640",
+    "action": "reminder",
+    "status": "executed"
   }
 }

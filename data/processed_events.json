@@ -1168,5 +1168,86 @@
     "payment_id": "pay_demo_valid_640",
     "action": "wait",
     "status": "blocked"
+  },
+  "event_failed_1788381427115_77": {
+    "processed_at": "2026-09-02T20:37:08.911Z",
+    "payment_id": "pay_test_failed_1788381427115_962",
+    "action": "reminder",
+    "status": "executed"
+  },
+  "event_captured_1788381429575_723": {
+    "processed_at": "2026-09-02T20:37:09.770Z",
+    "payment_id": "pay_test_failed_1788381427115_962",
+    "status": "captured"
+  },
+  "event_policy_valid_1788381434121": {
+    "processed_at": "2026-09-02T20:37:15.881Z",
+    "payment_id": "pay_demo_valid_852",
+    "action": "reminder",
+    "status": "executed"
+  },
+  "event_policy_cooldown_1788381436611": {
+    "processed_at": "2026-09-02T20:37:17.149Z",
+    "payment_id": "pay_demo_valid_852",
+    "action": "wait",
+    "status": "blocked"
+  },
+  "event_policy_captured_1788381437947": {
+    "processed_at": "2026-09-02T20:37:18.182Z",
+    "payment_id": "pay_demo_captured_35",
+    "status": "captured"
+  },
+  "evt_scen_a_1788381455974": {
+    "processed_at": "2026-09-02T20:37:37.590Z",
+    "payment_id": "pay_scen_a_1788381455974",
+    "action": "reminder",
+    "status": "executed"
+  },
+  "evt_scen_b_1788381455974": {
+    "processed_at": "2026-09-02T20:37:38.616Z",
+    "payment_id": "pay_scen_b_1788381455974",
+    "action": "payment_method_update",
+    "status": "executed"
+  },
+  "evt_scen_c_1788381455974": {
+    "processed_at": "2026-09-02T20:37:39.443Z",
+    "payment_id": "pay_scen_c_1788381455974",
+    "action": "escalate",
+    "status": "blocked"
+  },
+  "evt_scen_d_1788381455974": {
+    "processed_at": "2026-09-02T20:37:40.581Z",
+    "payment_id": "pay_scen_d_1788381455974",
+    "action": "escalate",
+    "status": "blocked"
+  },
+  "evt_scen_e_1788381455974": {
+    "processed_at": "2026-09-02T20:37:41.555Z",
+    "payment_id": "pay_scen_e_1788381455974",
+    "action": "escalate",
+    "status": "blocked"
+  },
+  "evt_scen_f_dup_1788381455974": {
+    "processed_at": "2026-09-02T20:37:43.097Z",
+    "payment_id": "pay_scen_f_1788381455974",
+    "action": "reminder",
+    "status": "executed"
+  },
+  "evt_scen_g_1788381455974": {
+    "processed_at": "2026-09-02T20:37:43.787Z",
+    "payment_id": "pay_demo_captured_69",
+    "status": "captured"
+  },
+  "evt_scen_h_1788381455974": {
+    "processed_at": "2026-09-02T20:37:44.759Z",
+    "payment_id": "pay_demo_maxattempts_257",
+    "action": "wait",
+    "status": "blocked"
+  },
+  "evt_scen_i_1788381455974": {
+    "processed_at": "2026-09-02T20:37:45.633Z",
+    "payment_id": "pay_demo_valid_640",
+    "action": "wait",
+    "status": "blocked"
   }
 }

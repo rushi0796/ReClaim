@@ -14,6 +14,8 @@ export default function PaymentRow({ payment, isSelected, onSelect }) {
     ? payment.failure_reason.replace(/_/g, ' ') 
     : 'insufficient funds';
 
+  const isRealRazorpay = Boolean(payment.is_live_test_mode || payment.is_real_razorpay || String(payment.payment_id).startsWith('pay_TX') || String(payment.payment_id).startsWith('pay_rzp'));
+
   return (
     <>
       {/* Desktop Table Row */}
@@ -24,7 +26,14 @@ export default function PaymentRow({ payment, isSelected, onSelect }) {
         }`}
       >
         <td className="py-2.5 px-3 font-mono font-semibold text-slate-900">
-          {payment.payment_id}
+          <div className="flex items-center space-x-1.5">
+            <span>{payment.payment_id}</span>
+            {isRealRazorpay && (
+              <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                REAL TEST
+              </span>
+            )}
+          </div>
         </td>
         <td className="py-2.5 px-3 font-mono font-bold text-slate-900">
           {formattedAmount}
@@ -41,7 +50,7 @@ export default function PaymentRow({ payment, isSelected, onSelect }) {
           {probPct}
         </td>
         <td className="py-2.5 px-3 font-mono text-[10px] text-slate-500">
-          Evaluated
+          {isRealRazorpay ? 'Razorpay Webhook' : 'Evaluated'}
         </td>
         <td className="py-2.5 px-3 text-right">
           <button className="text-xs text-slate-700 hover:text-slate-900 font-medium underline font-mono text-[11px]">
@@ -60,9 +69,16 @@ export default function PaymentRow({ payment, isSelected, onSelect }) {
         }`}
       >
         <div className="flex items-center justify-between">
-          <span className={`font-mono font-semibold text-xs ${isSelected ? 'text-white' : 'text-slate-900'}`}>
-            {payment.payment_id}
-          </span>
+          <div className="flex items-center space-x-1">
+            <span className={`font-mono font-semibold text-xs ${isSelected ? 'text-white' : 'text-slate-900'}`}>
+              {payment.payment_id}
+            </span>
+            {isRealRazorpay && (
+              <span className="px-1 py-0.5 rounded text-[8px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                REAL TEST
+              </span>
+            )}
+          </div>
           <span className={`font-mono font-bold text-sm ${isSelected ? 'text-emerald-400' : 'text-slate-900'}`}>
             {formattedAmount}
           </span>

@@ -19,26 +19,40 @@ export default function DecisionPanel({ payment, decisionResult, onClose, onExec
     );
   }
 
+  const probVal = payment.recovery_probability !== undefined ? payment.recovery_probability : 0.69;
+  const amtNum = Number(payment.amount) || 0;
+  const expectedAmt = payment.expected_recovered_amount !== undefined 
+    ? payment.expected_recovered_amount 
+    : Math.round(amtNum * probVal * 100) / 100;
+
   const decision = decisionResult || {
-    recommended_action: payment.recommended_action || 'reminder',
-    recovery_probability: payment.recovery_probability !== undefined ? payment.recovery_probability : 0.69,
-    expected_recovered_amount: payment.expected_recovered_amount !== undefined ? payment.expected_recovered_amount : 689.31,
-    confidence: 'high',
-    reason: 'Out of 30 total records matching failure reason "insufficient_funds", intervention "reminder" was tested 13 times with 9 successful recoveries (9/13 = 69.0%).'
+    recommended_action: payment.recommended_action || (payment.failure_reason === 'expired_card' ? 'payment_method_update' : 'reminder'),
+    recovery_probability: probVal,
+    expected_recovered_amount: expectedAmt,
+    confidence: payment.confidence || 'high',
+    reason: `Analyzed failed payment ${payment.payment_id} (${payment.failure_reason ? payment.failure_reason.replace(/_/g, ' ') : 'failure'}) with amount ₹${amtNum.toLocaleString('en-IN')}. Recommended action: ${(payment.recommended_action || 'reminder').replace(/_/g, ' ')}.`
   };
 
-  const amountVal = '₹' + Number(payment.amount).toLocaleString('en-IN');
-  const failureText = payment.failure_reason ? payment.failure_reason.replace(/_/g, ' ') : 'Insufficient funds';
+  const amountVal = '₹' + amtNum.toLocaleString('en-IN');
+  const failureText = payment.failure_reason ? payment.failure_reason.replace(/_/g, ' ') : 'payment failed';
+  const isRealRazorpay = Boolean(payment.is_live_test_mode || payment.is_real_razorpay || String(payment.payment_id).startsWith('pay_TX') || String(payment.payment_id).startsWith('pay_rzp'));
 
   return (
     <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-2xs space-y-4 font-sans">
       {/* Top Header */}
       <div className="flex items-center justify-between pb-3 border-b border-slate-200">
         <div>
-          <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider block font-semibold">
-            AI DECISION CONSOLE
-          </span>
-          <h3 className="text-sm font-bold text-slate-900 font-mono">
+          <div className="flex items-center space-x-2">
+            <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider block font-semibold">
+              AI DECISION CONSOLE
+            </span>
+            {isRealRazorpay && (
+              <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 font-mono text-[9px] font-bold border border-emerald-200">
+                REAL RAZORPAY TEST
+              </span>
+            )}
+          </div>
+          <h3 className="text-sm font-bold text-slate-900 font-mono mt-0.5">
             Recovery Decision
           </h3>
         </div>
@@ -65,10 +79,20 @@ export default function DecisionPanel({ payment, decisionResult, onClose, onExec
           <span className="text-[11px] font-mono text-slate-500 block mt-0.5">
             ID: {payment.payment_id}
           </span>
+          {payment.error_code && (
+            <span className="text-[10px] font-mono text-rose-600 block">
+              Error: {payment.error_code} ({payment.error_step || 'authorization'})
+            </span>
+          )}
         </div>
         <div className="text-right">
           <span className="text-[10px] text-slate-500 uppercase block font-medium">FAILURE REASON</span>
           <span className="text-xs font-bold text-rose-700 capitalize block mt-0.5">{failureText}</span>
+          {payment.error_source && (
+            <span className="text-[10px] text-slate-400 font-mono uppercase block mt-0.5">
+              Source: {payment.error_source}
+            </span>
+          )}
         </div>
       </div>
 

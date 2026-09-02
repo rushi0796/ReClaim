@@ -11,7 +11,7 @@ const PolicyService = require('./policyService');
 
 class RecoveryService {
   /**
-   * Processes the entire historical dataset as a batch analysis.
+   * Processes the payment dataset as a batch analysis.
    * @returns {Object} Batch analytics summary
    */
   static analyzeBatchRecovery() {
@@ -28,7 +28,7 @@ class RecoveryService {
 
   /**
    * Processes incoming Razorpay payment webhook event (payment.failed, payment.captured):
-   * Extracts context -> checks idempotency -> GenAI analysis -> safety policy check -> executes intervention -> logs audit.
+   * Validates event -> checks idempotency -> saves to live dataset -> GenAI analysis -> safety policy check -> executes intervention -> logs audit.
    * @param {Object} eventBody 
    * @returns {Promise<Object>}
    */
@@ -50,8 +50,18 @@ class RecoveryService {
 
     // Handle payment.captured lifecycle event
     if (eventType === 'payment.captured' || paymentEntity.status === 'captured') {
-      const amountInINR = (paymentEntity.amount || eventBody.amount || 0) / (paymentEntity.amount >= 100 ? 100 : 1);
+      const rawAmount = paymentEntity.amount !== undefined ? paymentEntity.amount : (eventBody.amount || 0);
+      const amountInINR = rawAmount >= 100 ? rawAmount / 100 : rawAmount;
       
+      const captureRecord = DatasetService.saveLivePayment({
+        payment_id: paymentId,
+        amount: amountInINR,
+        currency: paymentEntity.currency || eventBody.currency || 'INR',
+        status: 'captured',
+        failure_reason: 'none',
+        is_live_test_mode: true
+      });
+
       const captureResult = {
         status: 'captured_processed',
         event_type: eventType,
@@ -92,7 +102,7 @@ class RecoveryService {
       return captureResult;
     }
 
-    // 2. Extract and Normalize Payment Failure Context
+    // 2. Extract and Normalize Payment Failure Context from Razorpay Webhook
     let rawAmount = paymentEntity.amount !== undefined ? paymentEntity.amount : (eventBody.amount || 0);
     let amountInINR = rawAmount;
     if (rawAmount >= 100 && (paymentEntity.amount !== undefined || rawAmount % 100 === 0)) {
@@ -103,20 +113,26 @@ class RecoveryService {
     const currency = paymentEntity.currency || eventBody.currency || 'INR';
 
     let rawFailure = paymentEntity.error_reason || paymentEntity.error_code || eventBody.failure_reason || 'insufficient_funds';
+    let errorCode = paymentEntity.error_code || eventBody.error_code || null;
+    let errorDescription = paymentEntity.error_description || eventBody.error_description || null;
+    let errorSource = paymentEntity.error_source || eventBody.error_source || null;
+    let errorStep = paymentEntity.error_step || eventBody.error_step || null;
+
     let normalizedFailure = 'insufficient_funds';
 
-    const lowerFailure = String(rawFailure).toLowerCase();
+    const lowerFailure = String(rawFailure).toLowerCase() + ' ' + String(errorSource).toLowerCase() + ' ' + String(errorDescription).toLowerCase();
+
     if (lowerFailure.includes('fund') || lowerFailure.includes('balance') || lowerFailure.includes('insufficient')) {
       normalizedFailure = 'insufficient_funds';
     } else if (lowerFailure.includes('expire') || lowerFailure.includes('card_expired')) {
       normalizedFailure = 'expired_card';
-    } else if (lowerFailure.includes('decline') || lowerFailure.includes('bank') || lowerFailure.includes('issuer')) {
+    } else if (lowerFailure.includes('decline') || lowerFailure.includes('bank') || lowerFailure.includes('issuer') || lowerFailure.includes('authorization') || lowerFailure.includes('payment_failed')) {
       normalizedFailure = 'bank_declined';
     } else if (lowerFailure.includes('network') || lowerFailure.includes('timeout') || lowerFailure.includes('gateway')) {
       normalizedFailure = 'network_error';
     }
 
-    const customerHistory = eventBody.customer_history || paymentEntity.notes?.customer_history || 'previously_recovered_after_reminder';
+    const customerHistory = eventBody.customer_history || paymentEntity.notes?.customer_history || 'first_time_failure';
     const customer = {
       email: paymentEntity.email || eventBody.email || 'customer@example.com',
       contact: paymentEntity.contact || eventBody.contact || '+919999999999',
@@ -128,23 +144,31 @@ class RecoveryService {
       amount: amountInINR,
       currency: currency,
       failure_reason: normalizedFailure,
+      raw_error_reason: rawFailure,
+      error_code: errorCode,
+      error_description: errorDescription,
+      error_source: errorSource,
+      error_step: errorStep,
       customer_history: customerHistory,
       customer: customer,
       status: paymentEntity.status || eventBody.status || 'failed',
       failure_timestamp: paymentEntity.created_at || eventBody.failure_timestamp || eventBody.timestamp
     };
 
-    // 3. Empirical LOOCV Baseline & GenAI Reasoning Analysis
-    const dataset = DatasetService.getHistoricalPayments();
-    const empiricalAnalysis = DecisionEngine.analyze(paymentContext, dataset);
+    // 3. PERSIST REAL FAILED PAYMENT TO LIVE DATASET
+    DatasetService.saveLivePayment(paymentContext);
+
+    // 4. Empirical LOOCV Baseline & GenAI Reasoning Analysis
+    const historicalDataset = DatasetService.getHistoricalPayments();
+    const empiricalAnalysis = DecisionEngine.analyze(paymentContext, historicalDataset);
     const aiAnalysisResult = await AiReasoningService.analyzePaymentWithAI(paymentContext, empiricalAnalysis);
 
-    // 4. Deterministic Safety & Policy Engine Evaluation (Final Gate)
+    // 5. Deterministic Safety & Policy Engine Evaluation (Final Gate)
     const policyEvaluation = PolicyService.evaluatePolicy(paymentContext, aiAnalysisResult);
 
     let executionResult;
     if (policyEvaluation.allowed) {
-      // 5. Recovery Action Execution in Razorpay Test Mode
+      // 6. Recovery Action Execution in Razorpay Test Mode
       const bestAction = aiAnalysisResult.analysis.recommended_action;
       executionResult = await RecoveryActionExecutor.execute(bestAction, paymentContext);
     } else {
@@ -163,14 +187,14 @@ class RecoveryService {
       };
     }
 
-    // 6. Mark Event as Processed (Idempotency)
+    // 7. Mark Event as Processed (Idempotency)
     markEventProcessed(eventId, {
       payment_id: paymentId,
       action: policyEvaluation.allowed ? aiAnalysisResult.analysis.recommended_action : policyEvaluation.action,
       status: executionResult.status
     });
 
-    // 7. Log Audit Record
+    // 8. Log Comprehensive Audit Record Lifecycle Events
     logWebhookExecution({
       event_type: eventType,
       event_id: eventId,
@@ -191,6 +215,9 @@ class RecoveryService {
       amount: amountInINR,
       currency: currency,
       failure_reason: normalizedFailure,
+      raw_error_reason: rawFailure,
+      error_code: errorCode,
+      error_description: errorDescription,
       analysis: aiAnalysisResult.analysis,
       alternatives: aiAnalysisResult.alternatives,
       ai_status: aiAnalysisResult.ai_status,
@@ -215,8 +242,8 @@ class RecoveryService {
    * @returns {Promise<Object>} Recovery analysis result
    */
   static async analyzeRecovery(payload) {
-    const dataset = DatasetService.getHistoricalPayments();
-    const empiricalAnalysis = DecisionEngine.analyze(payload, dataset);
+    const historicalDataset = DatasetService.getHistoricalPayments();
+    const empiricalAnalysis = DecisionEngine.analyze(payload, historicalDataset);
     const aiResult = await AiReasoningService.analyzePaymentWithAI(payload, empiricalAnalysis);
 
     const policyEvaluation = PolicyService.evaluatePolicy(payload, aiResult);

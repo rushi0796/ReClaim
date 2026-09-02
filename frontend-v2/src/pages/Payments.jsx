@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import RecoveryQueue from '../components/RecoveryQueue';
 import DecisionPanel from '../components/DecisionPanel';
 import { analyzePayment } from '../services/api';
@@ -7,6 +7,12 @@ export default function Payments({ payments = [], onRefreshAudit, onNavigateAudi
   const [selectedPayment, setSelectedPayment] = useState(payments[0] || null);
   const [activeDecision, setActiveDecision] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  useEffect(() => {
+    if (payments.length > 0 && !selectedPayment) {
+      setSelectedPayment(payments[0]);
+    }
+  }, [payments]);
 
   const handleSelectPayment = async (payment) => {
     setSelectedPayment(payment);

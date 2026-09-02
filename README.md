@@ -90,9 +90,9 @@ GenAI is an integral component of RECLAIM's recovery decision engine:
 
 ```env
 PORT=5000
-RAZORPAY_KEY_ID=rzp_test_TXB4n3qXCLL8aN
-RAZORPAY_KEY_SECRET=pm3DZe7jQnNoM7Vh54KfY2Dz
-RAZORPAY_WEBHOOK_SECRET=reclaim_wh_sec_test_2026
+RAZORPAY_KEY_ID=your_razorpay_key_id_here
+RAZORPAY_KEY_SECRET=your_razorpay_key_secret_here
+RAZORPAY_WEBHOOK_SECRET=your_razorpay_webhook_secret_here
 VITE_API_BASE_URL=http://localhost:5000
 GEMINI_API_KEY=your_gemini_api_key_here
 ```

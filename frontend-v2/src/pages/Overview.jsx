@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import OverviewStats from '../components/OverviewStats';
 import RecoveryQueue from '../components/RecoveryQueue';
 import DecisionPanel from '../components/DecisionPanel';
@@ -12,6 +12,12 @@ export default function Overview({ batchData, batchValidationData, payments = []
   const [showAnalyzeForm, setShowAnalyzeForm] = useState(false);
 
   const queueRef = useRef(null);
+
+  useEffect(() => {
+    if (payments.length > 0 && !selectedPayment) {
+      setSelectedPayment(payments[0]);
+    }
+  }, [payments]);
 
   const [formData, setFormData] = useState({
     payment_id: 'pay_demo_001',
@@ -88,7 +94,8 @@ export default function Overview({ batchData, batchValidationData, payments = []
         customer_history: formData.customer_history,
         recommended_action: res.analysis.recommended_action,
         recovery_probability: res.analysis.recovery_probability,
-        expected_recovered_amount: res.analysis.expected_recovered_amount
+        expected_recovered_amount: res.analysis.expected_recovered_amount,
+        is_live_test_mode: true
       };
       setSelectedPayment(paymentObj);
       setActiveDecision(res.analysis);
@@ -136,7 +143,7 @@ export default function Overview({ batchData, batchValidationData, payments = []
         </div>
       </div>
 
-      {/* 4 Compact Overview KPI Cards */}
+      {/* 4 Compact Overview KPI Cards + Status Bars */}
       <OverviewStats
         batchData={batchData}
         batchValidationData={batchValidationData}

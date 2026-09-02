@@ -3,13 +3,14 @@ const DecisionEngine = require('../engine/decisionEngine');
 
 class BatchRecoveryService {
   /**
-   * Processes the entire historical dataset as a batch analysis.
+   * Processes the payment dataset (live Razorpay payments + synthetic historical data) as a batch analysis.
    * Calculates total revenue at risk, baseline expected recovery, RECLAIM expected recovery,
    * expected recovery lift, action distribution, and per-payment decision list.
    * @returns {Object} Batch analytics summary and payment breakdown
    */
   static analyzeBatch() {
-    const dataset = DatasetService.getHistoricalPayments();
+    const historicalDataset = DatasetService.getHistoricalPayments();
+    const allPayments = DatasetService.getAllPayments();
     
     let totalPayments = 0;
     let totalRevenueAtRisk = 0;
@@ -24,13 +25,13 @@ class BatchRecoveryService {
       payment_method_update: 0
     };
 
-    const decisions = dataset.map(payment => {
+    const decisions = allPayments.map(payment => {
       const amount = Number(payment.amount);
       totalPayments++;
       totalRevenueAtRisk += amount;
 
-      // 1. RECLAIM Optimal Decision
-      const reclaimAnalysis = DecisionEngine.analyze(payment, dataset);
+      // 1. RECLAIM Optimal Decision using historical dataset as outcome reference
+      const reclaimAnalysis = DecisionEngine.analyze(payment, historicalDataset);
       const rec = reclaimAnalysis.analysis;
 
       totalReclaimExpectedRecovery += rec.expected_recovered_amount;
@@ -46,7 +47,7 @@ class BatchRecoveryService {
         amount,
         payment.failure_reason,
         payment.customer_history,
-        dataset
+        historicalDataset
       );
       totalBaselineExpectedRecovery += baselineEval.expected_recovered_amount;
 
@@ -59,7 +60,14 @@ class BatchRecoveryService {
         recommended_action: rec.recommended_action,
         recovery_probability: rec.recovery_probability,
         expected_recovered_amount: rec.expected_recovered_amount,
-        confidence: rec.confidence
+        confidence: rec.confidence,
+        is_live_test_mode: Boolean(payment.is_live_test_mode || payment.is_real_razorpay),
+        raw_error_reason: payment.raw_error_reason || null,
+        error_code: payment.error_code || null,
+        error_description: payment.error_description || null,
+        error_source: payment.error_source || null,
+        error_step: payment.error_step || null,
+        created_at: payment.created_at || null
       };
     });
 
@@ -77,7 +85,7 @@ class BatchRecoveryService {
       : 0;
 
     return {
-      disclaimer: "SYNTHETIC DEMO DATA – EXPECTED VALUE SIMULATION: Computed using synthetic historical payment data for Buildathon prototype demonstration. Does not represent actual live recovered funds.",
+      disclaimer: "EXPECTED VALUE SIMULATION: Computed using synthetic historical payment dataset and live Razorpay Test Mode transactions.",
       total_payments: totalPayments,
       total_revenue_at_risk: roundedRisk,
       total_expected_recovery: roundedReclaimExpected,

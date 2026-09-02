@@ -7,7 +7,9 @@ export default function RecoveryQueue({ payments = [], selectedPayment, onSelect
   const [actionFilter, setActionFilter] = useState('all');
 
   const filteredPayments = payments.filter(p => {
-    const matchesSearch = p.payment_id.toLowerCase().includes(searchQuery.toLowerCase());
+    const q = searchQuery.toLowerCase().trim();
+    const searchTarget = `${p.payment_id} ${p.failure_reason || ''} ${p.raw_error_reason || ''} ${p.error_code || ''} ${p.error_description || ''} ${p.recommended_action || ''}`.toLowerCase();
+    const matchesSearch = !q || searchTarget.includes(q);
     const matchesReason = reasonFilter === 'all' || p.failure_reason === reasonFilter;
     const matchesAction = actionFilter === 'all' || p.recommended_action === actionFilter;
     return matchesSearch && matchesReason && matchesAction;
@@ -30,7 +32,7 @@ export default function RecoveryQueue({ payments = [], selectedPayment, onSelect
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
           <input
             type="text"
-            placeholder="Search Payment ID..."
+            placeholder="Search Payment ID or Error..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             className="w-full bg-slate-50 border border-slate-200 rounded-md px-3 py-1.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-900 font-mono"
@@ -72,7 +74,7 @@ export default function RecoveryQueue({ payments = [], selectedPayment, onSelect
               <th className="py-2 px-3">Failure Reason</th>
               <th className="py-2 px-3">RECLAIM Action</th>
               <th className="py-2 px-3">Probability</th>
-              <th className="py-2 px-3">Status</th>
+              <th className="py-2 px-3">Source</th>
               <th className="py-2 px-3 text-right">Inspect</th>
             </tr>
           </thead>

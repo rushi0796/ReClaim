@@ -3,15 +3,29 @@ const DecisionEngine = require('../engine/decisionEngine');
 
 class BatchRecoveryService {
   /**
-   * Processes the payment dataset (live Razorpay payments + synthetic historical data) as a batch analysis.
-   * Calculates total revenue at risk, baseline expected recovery, RECLAIM expected recovery,
-   * expected recovery lift, action distribution, and per-payment decision list.
-   * @returns {Object} Batch analytics summary and payment breakdown
+   * Async processing of payment dataset (live Razorpay payments from Upstash Redis + synthetic historical data).
+   * @returns {Promise<Object>} Batch analytics summary and payment breakdown
+   */
+  static async analyzeBatchAsync() {
+    const historicalDataset = DatasetService.getHistoricalPayments();
+    const allPayments = await DatasetService.getAllPaymentsAsync();
+    return this.computeBatchMetrics(allPayments, historicalDataset);
+  }
+
+  /**
+   * Sync processing for backward compatibility.
+   * @returns {Object}
    */
   static analyzeBatch() {
     const historicalDataset = DatasetService.getHistoricalPayments();
     const allPayments = DatasetService.getAllPayments();
-    
+    return this.computeBatchMetrics(allPayments, historicalDataset);
+  }
+
+  /**
+   * Internal helper to compute batch analysis statistics.
+   */
+  static computeBatchMetrics(allPayments, historicalDataset) {
     let totalPayments = 0;
     let totalRevenueAtRisk = 0;
     let totalReclaimExpectedRecovery = 0;

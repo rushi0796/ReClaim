@@ -9,9 +9,9 @@ const { getAuditLogs } = require('../utils/auditLogger');
  * GET /api/recovery/audit
  * Returns persistent audit log history.
  */
-router.get('/audit', (req, res) => {
+router.get('/audit', async (req, res) => {
   try {
-    const logs = getAuditLogs();
+    const logs = await getAuditLogs();
     return res.json(logs);
   } catch (error) {
     return res.status(500).json({ error: 'Failed to fetch audit logs' });
@@ -22,16 +22,16 @@ router.get('/audit', (req, res) => {
  * GET /api/recovery/diagnostics
  * Non-sensitive production system metadata for storage and integration status.
  */
-router.get('/diagnostics', (req, res) => {
+router.get('/diagnostics', async (req, res) => {
   try {
-    const kv = PersistentStorageService.getKvCredentials();
-    const livePayments = DatasetService.getLivePayments();
-    const logs = getAuditLogs();
+    const isCloudActive = PersistentStorageService.isCloudStorageActive();
+    const livePayments = await DatasetService.getLivePaymentsAsync();
+    const logs = await getAuditLogs();
 
     return res.json({
       environment: process.env.NODE_ENV || 'production',
-      storage_provider: kv ? 'kv_redis_rest' : 'local_tmp_fallback',
-      cloud_storage_configured: Boolean(kv),
+      storage_provider: isCloudActive ? 'upstash_redis' : 'local_tmp_fallback',
+      cloud_storage_configured: isCloudActive,
       razorpay_credentials_configured: Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET),
       webhook_secret_configured: Boolean(process.env.RAZORPAY_WEBHOOK_SECRET),
       gemini_configured: Boolean(process.env.GEMINI_API_KEY),
@@ -115,9 +115,9 @@ router.post('/validate', (req, res) => {
  * GET & POST /api/recovery/batch-analyze
  * Batch analysis endpoint processing live Razorpay payments and historical data.
  */
-const handleBatchAnalyze = (req, res) => {
+const handleBatchAnalyze = async (req, res) => {
   try {
-    const batchResult = RecoveryService.analyzeBatchRecovery();
+    const batchResult = await RecoveryService.analyzeBatchRecovery();
     return res.json(batchResult);
   } catch (error) {
     console.error('Error executing batch recovery analysis:', error);

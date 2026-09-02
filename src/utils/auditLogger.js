@@ -4,11 +4,11 @@ const PersistentStorageService = require('../services/persistentStorageService')
 const inMemoryAuditLogs = [];
 
 /**
- * Appends a recovery decision or webhook execution to the persistent audit log.
+ * Appends a recovery decision or webhook execution to the persistent audit log in Upstash Redis.
  * @param {Object} payload - Failure context payload
  * @param {Object} decisionResult - Engine decision result object
  */
-function logDecision(payload, decisionResult) {
+async function logDecision(payload, decisionResult) {
   const auditRecord = {
     audit_id: `aud_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
     timestamp: new Date().toISOString(),
@@ -29,9 +29,9 @@ function logDecision(payload, decisionResult) {
   inMemoryAuditLogs.unshift(auditRecord);
 
   try {
-    const existingLogs = PersistentStorageService.getJSONSync('reclaim:audit_logs', 'audit_logs.json', []);
-    const updatedLogs = [auditRecord, ...existingLogs];
-    PersistentStorageService.setJSONSync('reclaim:audit_logs', 'audit_logs.json', updatedLogs);
+    const existingLogs = await PersistentStorageService.getJSON('reclaim:audit_logs', 'audit_logs.json', []);
+    const updatedLogs = [auditRecord, ...(Array.isArray(existingLogs) ? existingLogs : [])];
+    await PersistentStorageService.setJSON('reclaim:audit_logs', 'audit_logs.json', updatedLogs);
   } catch (error) {
     // In-memory array retains log history during runtime
   }
@@ -43,7 +43,7 @@ function logDecision(payload, decisionResult) {
  * Appends a Razorpay webhook execution event (payment.failed, payment.captured) to the audit log.
  * @param {Object} webhookLogData 
  */
-function logWebhookExecution(webhookLogData) {
+async function logWebhookExecution(webhookLogData) {
   const eventType = webhookLogData.event_type || 'PAYMENT_FAILED_RECEIVED';
   const executionStatus = webhookLogData.execution?.status || 'processed';
   const policyAllowed = webhookLogData.policy_evaluation?.allowed;
@@ -78,9 +78,9 @@ function logWebhookExecution(webhookLogData) {
   inMemoryAuditLogs.unshift(auditRecord);
 
   try {
-    const existingLogs = PersistentStorageService.getJSONSync('reclaim:audit_logs', 'audit_logs.json', []);
-    const updatedLogs = [auditRecord, ...existingLogs];
-    PersistentStorageService.setJSONSync('reclaim:audit_logs', 'audit_logs.json', updatedLogs);
+    const existingLogs = await PersistentStorageService.getJSON('reclaim:audit_logs', 'audit_logs.json', []);
+    const updatedLogs = [auditRecord, ...(Array.isArray(existingLogs) ? existingLogs : [])];
+    await PersistentStorageService.setJSON('reclaim:audit_logs', 'audit_logs.json', updatedLogs);
   } catch (error) {
     // In-memory array retains log history
   }
@@ -89,12 +89,12 @@ function logWebhookExecution(webhookLogData) {
 }
 
 /**
- * Reads all recorded audit logs.
- * @returns {Array<Object>} List of audit records
+ * Reads all recorded audit logs asynchronously from Upstash Redis or local fallback.
+ * @returns {Promise<Array<Object>>} List of audit records
  */
-function getAuditLogs() {
+async function getAuditLogs() {
   try {
-    const fileLogs = PersistentStorageService.getJSONSync('reclaim:audit_logs', 'audit_logs.json', []);
+    const fileLogs = await PersistentStorageService.getJSON('reclaim:audit_logs', 'audit_logs.json', []);
     if (Array.isArray(fileLogs) && fileLogs.length > 0) {
       const mergedMap = new Map();
       fileLogs.forEach(r => mergedMap.set(r.audit_id, r));
@@ -107,8 +107,28 @@ function getAuditLogs() {
   return [...inMemoryAuditLogs];
 }
 
+/**
+ * Synchronous getAuditLogs for local/test execution.
+ * @returns {Array<Object>}
+ */
+function getAuditLogsSync() {
+  try {
+    const fileLogs = PersistentStorageService.getJSONSync('reclaim:audit_logs', 'audit_logs.json', []);
+    if (Array.isArray(fileLogs) && fileLogs.length > 0) {
+      const mergedMap = new Map();
+      fileLogs.forEach(r => mergedMap.set(r.audit_id, r));
+      inMemoryAuditLogs.forEach(r => mergedMap.set(r.audit_id, r));
+      return Array.from(mergedMap.values());
+    }
+  } catch (error) {
+    // Ignore error
+  }
+  return [...inMemoryAuditLogs];
+}
+
 module.exports = {
   logDecision,
   logWebhookExecution,
-  getAuditLogs
+  getAuditLogs,
+  getAuditLogsSync
 };

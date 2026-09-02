@@ -28,14 +28,33 @@ class DatasetService {
   }
 
   /**
-   * Loads all live Razorpay Test Mode failed payment records.
-   * @returns {Array<Object>} List of live payment objects
+   * Loads all live Razorpay Test Mode failed payment records from Upstash Redis or local fallback.
+   * @returns {Promise<Array<Object>>} List of live payment objects
+   */
+  static async getLivePaymentsAsync() {
+    try {
+      const storedRecords = await PersistentStorageService.getJSON('reclaim:live_payments', 'live_payments.json', []);
+      if (Array.isArray(storedRecords) && storedRecords.length > 0) {
+        const fileMap = new Map();
+        storedRecords.forEach(r => fileMap.set(r.payment_id, r));
+        inMemoryLivePayments.forEach((r, id) => fileMap.set(id, r));
+        return Array.from(fileMap.values());
+      }
+    } catch (error) {
+      console.error('Error reading live payments:', error.message);
+    }
+    return Array.from(inMemoryLivePayments.values());
+  }
+
+  /**
+   * Sync getLivePayments for local/fallback execution.
+   * @returns {Array<Object>}
    */
   static getLivePayments() {
     const list = Array.from(inMemoryLivePayments.values());
     try {
       const storedRecords = PersistentStorageService.getJSONSync('reclaim:live_payments', 'live_payments.json', []);
-      if (Array.isArray(storedRecords)) {
+      if (Array.isArray(storedRecords) && storedRecords.length > 0) {
         const fileMap = new Map();
         storedRecords.forEach(r => fileMap.set(r.payment_id, r));
         inMemoryLivePayments.forEach((r, id) => fileMap.set(id, r));
@@ -48,10 +67,52 @@ class DatasetService {
   }
 
   /**
-   * Saves or updates a live Razorpay Test Mode failed payment record.
+   * Async saveLivePayment updating Upstash Redis and local fallback.
    * Idempotent based on payment_id.
    * @param {Object} paymentRecord 
-   * @returns {Object} Saved payment record
+   * @returns {Promise<Object>} Saved payment record
+   */
+  static async saveLivePaymentAsync(paymentRecord) {
+    if (!paymentRecord || !paymentRecord.payment_id) return paymentRecord;
+
+    const existingList = await this.getLivePaymentsAsync();
+    const existingIndex = existingList.findIndex(p => p.payment_id === paymentRecord.payment_id);
+
+    const fullRecord = {
+      ...(existingIndex >= 0 ? existingList[existingIndex] : {}),
+      ...paymentRecord,
+      is_live_test_mode: true,
+      is_real_razorpay: true,
+      updated_at: new Date().toISOString()
+    };
+
+    if (!fullRecord.created_at) {
+      fullRecord.created_at = new Date().toISOString();
+    }
+
+    inMemoryLivePayments.set(paymentRecord.payment_id, fullRecord);
+
+    try {
+      let updatedList = [];
+      if (existingIndex >= 0) {
+        updatedList = [...existingList];
+        updatedList[existingIndex] = fullRecord;
+      } else {
+        updatedList = [fullRecord, ...existingList];
+      }
+
+      await PersistentStorageService.setJSON('reclaim:live_payments', 'live_payments.json', updatedList);
+    } catch (error) {
+      // In-memory map serves as immediate runtime cache
+    }
+
+    return fullRecord;
+  }
+
+  /**
+   * Sync saveLivePayment for backward compatibility.
+   * @param {Object} paymentRecord 
+   * @returns {Object}
    */
   static saveLivePayment(paymentRecord) {
     if (!paymentRecord || !paymentRecord.payment_id) return paymentRecord;
@@ -83,6 +144,8 @@ class DatasetService {
       }
 
       PersistentStorageService.setJSONSync('reclaim:live_payments', 'live_payments.json', updatedList);
+      // Trigger async cloud save in background if Redis is active
+      PersistentStorageService.setJSON('reclaim:live_payments', 'live_payments.json', updatedList).catch(() => {});
     } catch (error) {
       // In-memory map serves as immediate runtime cache
     }
@@ -92,6 +155,16 @@ class DatasetService {
 
   /**
    * Returns combined list of payments: live Razorpay payments first, followed by historical synthetic records.
+   * @returns {Promise<Array<Object>>}
+   */
+  static async getAllPaymentsAsync() {
+    const live = await this.getLivePaymentsAsync();
+    const historical = this.getHistoricalPayments();
+    return [...live, ...historical];
+  }
+
+  /**
+   * Sync getAllPayments for backward compatibility.
    * @returns {Array<Object>}
    */
   static getAllPayments() {

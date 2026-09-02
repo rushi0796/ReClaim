@@ -1,46 +1,51 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const { getRedisClient } = require('../utils/redisClient');
 
 const LOCAL_DATA_DIR = path.join(__dirname, '../../data');
 const TMP_DATA_DIR = os.tmpdir();
 
 class PersistentStorageService {
   /**
-   * Helper to check if Upstash Redis or Vercel KV REST environment variables are available.
+   * Helper to check if Upstash Redis credentials are configured.
    */
   static getKvCredentials() {
-    const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-    const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
-    if (url && token) {
+    const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+    const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+    if (url && token && !url.includes('your_') && !token.includes('your_')) {
       return { url, token };
     }
     return null;
   }
 
   /**
-   * Reads JSON value from KV REST API or local file fallback.
+   * Checks if Upstash Redis cloud storage is active and initialized.
+   * @returns {boolean}
+   */
+  static isCloudStorageActive() {
+    return Boolean(this.getKvCredentials() && getRedisClient());
+  }
+
+  /**
+   * Reads JSON value from Upstash Redis or local/tmp file fallback.
    * @param {string} key 
    * @param {string} localFilename 
    * @param {*} defaultValue 
    * @returns {Promise<*>}
    */
   static async getJSON(key, localFilename, defaultValue = []) {
-    const kv = this.getKvCredentials();
+    const redis = getRedisClient();
 
-    if (kv) {
+    if (redis) {
       try {
-        const res = await fetch(`${kv.url}/get/${key}`, {
-          headers: { Authorization: `Bearer ${kv.token}` }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.result) {
-            return typeof data.result === 'string' ? JSON.parse(data.result) : data.result;
-          }
+        console.log(`[Storage] storage_provider = upstash_redis (reading key: ${key})`);
+        const result = await redis.get(key);
+        if (result !== null && result !== undefined) {
+          return typeof result === 'string' ? JSON.parse(result) : result;
         }
       } catch (err) {
-        console.warn(`[Storage] KV REST read error for key '${key}':`, err.message);
+        console.warn(`[Storage] Upstash Redis read error for key '${key}':`, err.message);
       }
     }
 
@@ -92,32 +97,26 @@ class PersistentStorageService {
   }
 
   /**
-   * Writes JSON value to KV REST API and local/tmp file fallback.
+   * Writes JSON value to Upstash Redis and local/tmp file fallback.
    * @param {string} key 
    * @param {string} localFilename 
    * @param {*} value 
    * @returns {Promise<boolean>}
    */
   static async setJSON(key, localFilename, value) {
-    const kv = this.getKvCredentials();
-    const jsonStr = JSON.stringify(value, null, 2);
+    const redis = getRedisClient();
 
-    if (kv) {
+    if (redis) {
       try {
-        await fetch(`${kv.url}/set/${key}`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${kv.token}`,
-            'Content-Type': 'application/json'
-          },
-          body: jsonStr
-        });
+        console.log(`[Storage] storage_provider = upstash_redis (writing key: ${key})`);
+        await redis.set(key, value);
       } catch (err) {
-        console.warn(`[Storage] KV REST write error for key '${key}':`, err.message);
+        console.warn(`[Storage] Upstash Redis write error for key '${key}':`, err.message);
       }
     }
 
     // Write to local file & /tmp fallback
+    const jsonStr = JSON.stringify(value, null, 2);
     const targets = [
       path.join(LOCAL_DATA_DIR, localFilename),
       path.join(TMP_DATA_DIR, `reclaim_${localFilename}`)

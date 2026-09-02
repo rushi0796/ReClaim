@@ -59,7 +59,7 @@ class RecoveryService {
           created_at: item.created_at ? new Date(item.created_at * 1000).toISOString() : new Date().toISOString()
         };
 
-        const saved = DatasetService.saveLivePayment(paymentRecord);
+        const saved = await DatasetService.saveLivePaymentAsync(paymentRecord);
         syncedPayments.push(saved);
       }
 
@@ -80,10 +80,10 @@ class RecoveryService {
 
   /**
    * Processes the payment dataset as a batch analysis.
-   * @returns {Object} Batch analytics summary
+   * @returns {Promise<Object>} Batch analytics summary
    */
-  static analyzeBatchRecovery() {
-    return BatchRecoveryService.analyzeBatch();
+  static async analyzeBatchRecovery() {
+    return await BatchRecoveryService.analyzeBatchAsync();
   }
 
   /**
@@ -107,7 +107,7 @@ class RecoveryService {
     const eventId = eventBody.id || `${paymentId}_${eventType}`;
 
     // 1. Idempotency Check
-    if (isEventProcessed(eventId)) {
+    if (await isEventProcessed(eventId)) {
       return {
         status: 'already_processed',
         event_id: eventId,
@@ -121,7 +121,7 @@ class RecoveryService {
       const rawAmount = paymentEntity.amount !== undefined ? paymentEntity.amount : (eventBody.amount || 0);
       const amountInINR = rawAmount >= 100 ? rawAmount / 100 : rawAmount;
       
-      const captureRecord = DatasetService.saveLivePayment({
+      const captureRecord = await DatasetService.saveLivePaymentAsync({
         payment_id: paymentId,
         amount: amountInINR,
         currency: paymentEntity.currency || eventBody.currency || 'INR',
@@ -154,8 +154,8 @@ class RecoveryService {
         audit_logged: true
       };
 
-      markEventProcessed(eventId, { payment_id: paymentId, status: 'captured' });
-      logWebhookExecution({
+      await markEventProcessed(eventId, { payment_id: paymentId, status: 'captured' });
+      await logWebhookExecution({
         event_type: eventType,
         event_id: eventId,
         payment_id: paymentId,
@@ -223,8 +223,8 @@ class RecoveryService {
       failure_timestamp: paymentEntity.created_at || eventBody.failure_timestamp || eventBody.timestamp
     };
 
-    // 3. PERSIST REAL FAILED PAYMENT TO LIVE DATASET
-    DatasetService.saveLivePayment(paymentContext);
+    // 3. PERSIST REAL FAILED PAYMENT TO LIVE DATASET IN UPSTASH REDIS
+    await DatasetService.saveLivePaymentAsync(paymentContext);
 
     // 4. Empirical LOOCV Baseline & GenAI Reasoning Analysis
     const historicalDataset = DatasetService.getHistoricalPayments();
@@ -232,7 +232,7 @@ class RecoveryService {
     const aiAnalysisResult = await AiReasoningService.analyzePaymentWithAI(paymentContext, empiricalAnalysis);
 
     // 5. Deterministic Safety & Policy Engine Evaluation (Final Gate)
-    const policyEvaluation = PolicyService.evaluatePolicy(paymentContext, aiAnalysisResult);
+    const policyEvaluation = await PolicyService.evaluatePolicyAsync(paymentContext, aiAnalysisResult);
 
     let executionResult;
     if (policyEvaluation.allowed) {
@@ -256,14 +256,14 @@ class RecoveryService {
     }
 
     // 7. Mark Event as Processed (Idempotency)
-    markEventProcessed(eventId, {
+    await markEventProcessed(eventId, {
       payment_id: paymentId,
       action: policyEvaluation.allowed ? aiAnalysisResult.analysis.recommended_action : policyEvaluation.action,
       status: executionResult.status
     });
 
     // 8. Log Comprehensive Audit Record Lifecycle Events
-    logWebhookExecution({
+    await logWebhookExecution({
       event_type: eventType,
       event_id: eventId,
       payment_id: paymentId,
@@ -314,11 +314,11 @@ class RecoveryService {
     const empiricalAnalysis = DecisionEngine.analyze(payload, historicalDataset);
     const aiResult = await AiReasoningService.analyzePaymentWithAI(payload, empiricalAnalysis);
 
-    const policyEvaluation = PolicyService.evaluatePolicy(payload, aiResult);
+    const policyEvaluation = await PolicyService.evaluatePolicyAsync(payload, aiResult);
     aiResult.policy_evaluation = policyEvaluation;
 
     // Save decision to audit log
-    logDecision(payload, aiResult);
+    await logDecision(payload, aiResult);
 
     return aiResult;
   }

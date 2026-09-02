@@ -892,5 +892,130 @@
     "processed_at": "2026-09-02T19:28:52.162Z",
     "payment_id": "pay_captured_test_1788377332154",
     "status": "captured"
+  },
+  "evt_failed_1788379188863": {
+    "processed_at": "2026-09-02T19:59:51.918Z",
+    "payment_id": "pay_wh_test_1788379188863",
+    "action": "reminder",
+    "status": "executed"
+  },
+  "evt_captured_1788379192405": {
+    "processed_at": "2026-09-02T19:59:52.680Z",
+    "payment_id": "pay_captured_test_1788379192405",
+    "status": "captured"
+  },
+  "event_failed_1788379207286": {
+    "processed_at": "2026-09-02T20:00:08.244Z",
+    "payment_id": "pay_test_failed_446",
+    "action": "stop",
+    "status": "blocked"
+  },
+  "event_captured_1788379208835": {
+    "processed_at": "2026-09-02T20:00:09.043Z",
+    "payment_id": "pay_test_failed_446",
+    "status": "captured"
+  },
+  "event_failed_1788379220778": {
+    "processed_at": "2026-09-02T20:00:21.655Z",
+    "payment_id": "pay_test_failed_94",
+    "action": "stop",
+    "status": "blocked"
+  },
+  "event_captured_1788379222339": {
+    "processed_at": "2026-09-02T20:00:22.561Z",
+    "payment_id": "pay_test_failed_94",
+    "status": "captured"
+  },
+  "event_failed_1788379230413_323": {
+    "processed_at": "2026-09-02T20:00:31.327Z",
+    "payment_id": "pay_test_failed_1788379230413_244",
+    "action": "stop",
+    "status": "blocked"
+  },
+  "event_captured_1788379231907_198": {
+    "processed_at": "2026-09-02T20:00:32.157Z",
+    "payment_id": "pay_test_failed_1788379230413_244",
+    "status": "captured"
+  },
+  "event_failed_1788379243771_128": {
+    "processed_at": "2026-09-02T20:00:45.493Z",
+    "payment_id": "pay_test_failed_1788379243771_969",
+    "action": "reminder",
+    "status": "executed"
+  },
+  "event_captured_1788379246102_723": {
+    "processed_at": "2026-09-02T20:00:46.320Z",
+    "payment_id": "pay_test_failed_1788379243771_969",
+    "status": "captured"
+  },
+  "event_policy_valid_1788379251082": {
+    "processed_at": "2026-09-02T20:00:52.844Z",
+    "payment_id": "pay_demo_valid_87",
+    "action": "reminder",
+    "status": "executed"
+  },
+  "event_policy_cooldown_1788379253549": {
+    "processed_at": "2026-09-02T20:00:54.064Z",
+    "payment_id": "pay_demo_valid_87",
+    "action": "wait",
+    "status": "blocked"
+  },
+  "event_policy_captured_1788379254797": {
+    "processed_at": "2026-09-02T20:00:55.067Z",
+    "payment_id": "pay_demo_captured_908",
+    "status": "captured"
+  },
+  "evt_scen_a_1788379272369": {
+    "processed_at": "2026-09-02T20:01:14.253Z",
+    "payment_id": "pay_scen_a_1788379272369",
+    "action": "reminder",
+    "status": "executed"
+  },
+  "evt_scen_b_1788379272369": {
+    "processed_at": "2026-09-02T20:01:15.462Z",
+    "payment_id": "pay_scen_b_1788379272369",
+    "action": "payment_method_update",
+    "status": "executed"
+  },
+  "evt_scen_c_1788379272369": {
+    "processed_at": "2026-09-02T20:01:16.514Z",
+    "payment_id": "pay_scen_c_1788379272369",
+    "action": "escalate",
+    "status": "blocked"
+  },
+  "evt_scen_d_1788379272369": {
+    "processed_at": "2026-09-02T20:01:17.743Z",
+    "payment_id": "pay_scen_d_1788379272369",
+    "action": "escalate",
+    "status": "blocked"
+  },
+  "evt_scen_e_1788379272369": {
+    "processed_at": "2026-09-02T20:01:18.670Z",
+    "payment_id": "pay_scen_e_1788379272369",
+    "action": "escalate",
+    "status": "blocked"
+  },
+  "evt_scen_f_dup_1788379272369": {
+    "processed_at": "2026-09-02T20:01:20.323Z",
+    "payment_id": "pay_scen_f_1788379272369",
+    "action": "reminder",
+    "status": "executed"
+  },
+  "evt_scen_g_1788379272369": {
+    "processed_at": "2026-09-02T20:01:20.919Z",
+    "payment_id": "pay_demo_captured_69",
+    "status": "captured"
+  },
+  "evt_scen_h_1788379272369": {
+    "processed_at": "2026-09-02T20:01:22.394Z",
+    "payment_id": "pay_demo_maxattempts_257",
+    "action": "reminder",
+    "status": "executed"
+  },
+  "evt_scen_i_1788379272369": {
+    "processed_at": "2026-09-02T20:01:23.800Z",
+    "payment_id": "pay_demo_valid_640",
+    "action": "reminder",
+    "status": "executed"
   }
 }

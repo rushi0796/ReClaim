@@ -1,5 +1,682 @@
 [
   {
+    "audit_id": "aud_1788379283958_558",
+    "timestamp": "2026-09-02T20:01:23.959Z",
+    "event_type": "RECOVERY_ACTION_EXECUTED",
+    "raw_event": "payment.failed",
+    "event_id": "evt_scen_i_1788379272369",
+    "payment_id": "pay_demo_valid_640",
+    "amount": 999,
+    "currency": "INR",
+    "failure_reason": "insufficient_funds",
+    "customer_history": "first_time_failure",
+    "recommended_action": "reminder",
+    "recovery_probability": 0.69,
+    "expected_recovered_amount": 689.31,
+    "policy_evaluation": {
+      "allowed": true,
+      "reason": "policy_checks_passed",
+      "action": "execute"
+    },
+    "execution": {
+      "action": "reminder",
+      "status": "executed",
+      "execution_mode": "RAZORPAY_TEST_MODE_SIMULATED",
+      "is_simulated": true,
+      "timestamp": "2026-09-02T20:01:23.315Z",
+      "details": {
+        "payment_id": "pay_demo_valid_640",
+        "payment_link_id": "plink_test_1788379283800_614",
+        "payment_url": "https://rzp.io/i/test_link_plink_test_1788379283800_614",
+        "message": "Razorpay Test Mode Payment Link generated and reminder dispatched [SIMULATED]."
+      }
+    }
+  },
+  {
+    "audit_id": "aud_1788379282601_347",
+    "timestamp": "2026-09-02T20:01:22.601Z",
+    "event_type": "RECOVERY_ACTION_EXECUTED",
+    "raw_event": "payment.failed",
+    "event_id": "evt_scen_h_1788379272369",
+    "payment_id": "pay_demo_maxattempts_257",
+    "amount": 999,
+    "currency": "INR",
+    "failure_reason": "insufficient_funds",
+    "customer_history": "first_time_failure",
+    "recommended_action": "reminder",
+    "recovery_probability": 0.69,
+    "expected_recovered_amount": 689.31,
+    "policy_evaluation": {
+      "allowed": true,
+      "reason": "policy_checks_passed",
+      "action": "execute"
+    },
+    "execution": {
+      "action": "reminder",
+      "status": "executed",
+      "execution_mode": "RAZORPAY_TEST_MODE_SIMULATED",
+      "is_simulated": true,
+      "timestamp": "2026-09-02T20:01:21.884Z",
+      "details": {
+        "payment_id": "pay_demo_maxattempts_257",
+        "payment_link_id": "plink_test_1788379282394_924",
+        "payment_url": "https://rzp.io/i/test_link_plink_test_1788379282394_924",
+        "message": "Razorpay Test Mode Payment Link generated and reminder dispatched [SIMULATED]."
+      }
+    }
+  },
+  {
+    "audit_id": "aud_1788379281072_938",
+    "timestamp": "2026-09-02T20:01:21.072Z",
+    "event_type": "RECOVERY_ACTION_BLOCKED",
+    "raw_event": "payment.failed",
+    "event_id": "evt_scen_g_1788379272369",
+    "payment_id": "pay_demo_captured_69",
+    "amount": 999,
+    "currency": "INR",
+    "failure_reason": "none",
+    "customer_history": null,
+    "recommended_action": "stop",
+    "recovery_probability": 1,
+    "expected_recovered_amount": 999,
+    "policy_evaluation": {
+      "allowed": false,
+      "reason": "payment_already_recovered",
+      "action": "stop"
+    },
+    "execution": {
+      "action": "stop",
+      "status": "captured",
+      "execution_mode": "PAYMENT_CAPTURED_RECOVERY_STOPPED",
+      "is_simulated": true,
+      "timestamp": "2026-09-02T20:01:20.919Z"
+    }
+  },
+  {
+    "audit_id": "aud_1788379280473_291",
+    "timestamp": "2026-09-02T20:01:20.473Z",
+    "event_type": "RECOVERY_ACTION_EXECUTED",
+    "raw_event": "payment.failed",
+    "event_id": "evt_scen_f_dup_1788379272369",
+    "payment_id": "pay_scen_f_1788379272369",
+    "amount": 999,
+    "currency": "INR",
+    "failure_reason": "insufficient_funds",
+    "customer_history": "first_time_failure",
+    "recommended_action": "reminder",
+    "recovery_probability": 0.69,
+    "expected_recovered_amount": 689.31,
+    "policy_evaluation": {
+      "allowed": true,
+      "reason": "policy_checks_passed",
+      "action": "execute"
+    },
+    "execution": {
+      "action": "reminder",
+      "status": "executed",
+      "execution_mode": "RAZORPAY_TEST_MODE_SIMULATED",
+      "is_simulated": true,
+      "timestamp": "2026-09-02T20:01:19.680Z",
+      "details": {
+        "payment_id": "pay_scen_f_1788379272369",
+        "payment_link_id": "plink_test_1788379280322_3",
+        "payment_url": "https://rzp.io/i/test_link_plink_test_1788379280322_3",
+        "message": "Razorpay Test Mode Payment Link generated and reminder dispatched [SIMULATED]."
+      }
+    }
+  },
+  {
+    "audit_id": "aud_1788379278833_20",
+    "timestamp": "2026-09-02T20:01:18.833Z",
+    "event_type": "RECOVERY_ACTION_BLOCKED",
+    "raw_event": "payment.failed",
+    "event_id": "evt_scen_e_1788379272369",
+    "payment_id": "pay_scen_e_1788379272369",
+    "amount": 500,
+    "currency": "INR",
+    "failure_reason": "network_error",
+    "customer_history": "first_time_failure",
+    "recommended_action": "retry_later",
+    "recovery_probability": 1,
+    "expected_recovered_amount": 500,
+    "policy_evaluation": {
+      "allowed": false,
+      "reason": "low_decision_confidence",
+      "action": "escalate"
+    },
+    "execution": {
+      "action": "escalate",
+      "status": "blocked",
+      "execution_mode": "POLICY_ENGINE_BLOCKED",
+      "is_simulated": true,
+      "timestamp": "2026-09-02T20:01:18.670Z",
+      "details": {
+        "payment_id": "pay_scen_e_1788379272369",
+        "reason": "low_decision_confidence",
+        "message": "Recovery action blocked by Safety & Policy Engine: low_decision_confidence"
+      }
+    }
+  },
+  {
+    "audit_id": "aud_1788379277904_617",
+    "timestamp": "2026-09-02T20:01:17.904Z",
+    "event_type": "RECOVERY_ACTION_BLOCKED",
+    "raw_event": "payment.failed",
+    "event_id": "evt_scen_d_1788379272369",
+    "payment_id": "pay_scen_d_1788379272369",
+    "amount": 1500,
+    "currency": "INR",
+    "failure_reason": "network_error",
+    "customer_history": "first_time_failure",
+    "recommended_action": "retry_later",
+    "recovery_probability": 1,
+    "expected_recovered_amount": 1500,
+    "policy_evaluation": {
+      "allowed": false,
+      "reason": "low_decision_confidence",
+      "action": "escalate"
+    },
+    "execution": {
+      "action": "escalate",
+      "status": "blocked",
+      "execution_mode": "POLICY_ENGINE_BLOCKED",
+      "is_simulated": true,
+      "timestamp": "2026-09-02T20:01:17.743Z",
+      "details": {
+        "payment_id": "pay_scen_d_1788379272369",
+        "reason": "low_decision_confidence",
+        "message": "Recovery action blocked by Safety & Policy Engine: low_decision_confidence"
+      }
+    }
+  },
+  {
+    "audit_id": "aud_1788379276676_760",
+    "timestamp": "2026-09-02T20:01:16.676Z",
+    "event_type": "RECOVERY_ACTION_BLOCKED",
+    "raw_event": "payment.failed",
+    "event_id": "evt_scen_c_1788379272369",
+    "payment_id": "pay_scen_c_1788379272369",
+    "amount": 2500,
+    "currency": "INR",
+    "failure_reason": "bank_declined",
+    "customer_history": "first_time_failure",
+    "recommended_action": "payment_method_update",
+    "recovery_probability": 1,
+    "expected_recovered_amount": 2500,
+    "policy_evaluation": {
+      "allowed": false,
+      "reason": "low_decision_confidence",
+      "action": "escalate"
+    },
+    "execution": {
+      "action": "escalate",
+      "status": "blocked",
+      "execution_mode": "POLICY_ENGINE_BLOCKED",
+      "is_simulated": true,
+      "timestamp": "2026-09-02T20:01:16.514Z",
+      "details": {
+        "payment_id": "pay_scen_c_1788379272369",
+        "reason": "low_decision_confidence",
+        "message": "Recovery action blocked by Safety & Policy Engine: low_decision_confidence"
+      }
+    }
+  },
+  {
+    "audit_id": "aud_1788379275655_919",
+    "timestamp": "2026-09-02T20:01:15.655Z",
+    "event_type": "RECOVERY_ACTION_EXECUTED",
+    "raw_event": "payment.failed",
+    "event_id": "evt_scen_b_1788379272369",
+    "payment_id": "pay_scen_b_1788379272369",
+    "amount": 1299,
+    "currency": "INR",
+    "failure_reason": "expired_card",
+    "customer_history": "first_time_failure",
+    "recommended_action": "payment_method_update",
+    "recovery_probability": 0.8,
+    "expected_recovered_amount": 1039.2,
+    "policy_evaluation": {
+      "allowed": true,
+      "reason": "policy_checks_passed",
+      "action": "execute"
+    },
+    "execution": {
+      "action": "payment_method_update",
+      "status": "executed",
+      "execution_mode": "RAZORPAY_TEST_MODE_SIMULATED",
+      "is_simulated": true,
+      "timestamp": "2026-09-02T20:01:15.462Z",
+      "details": {
+        "payment_id": "pay_scen_b_1788379272369",
+        "update_link_id": "update_link_test_1788379275462",
+        "update_url": "https://rzp.io/i/update_method_update_link_test_1788379275462",
+        "message": "Payment method update request generated for customer [TEST MODE - SIMULATED]."
+      }
+    }
+  },
+  {
+    "audit_id": "aud_1788379274462_187",
+    "timestamp": "2026-09-02T20:01:14.462Z",
+    "event_type": "RECOVERY_ACTION_EXECUTED",
+    "raw_event": "payment.failed",
+    "event_id": "evt_scen_a_1788379272369",
+    "payment_id": "pay_scen_a_1788379272369",
+    "amount": 999,
+    "currency": "INR",
+    "failure_reason": "insufficient_funds",
+    "customer_history": "previously_recovered_after_reminder",
+    "recommended_action": "reminder",
+    "recovery_probability": 0.69,
+    "expected_recovered_amount": 689.31,
+    "policy_evaluation": {
+      "allowed": true,
+      "reason": "policy_checks_passed",
+      "action": "execute"
+    },
+    "execution": {
+      "action": "reminder",
+      "status": "executed",
+      "execution_mode": "RAZORPAY_TEST_MODE_SIMULATED",
+      "is_simulated": true,
+      "timestamp": "2026-09-02T20:01:13.534Z",
+      "details": {
+        "payment_id": "pay_scen_a_1788379272369",
+        "payment_link_id": "plink_test_1788379274253_952",
+        "payment_url": "https://rzp.io/i/test_link_plink_test_1788379274253_952",
+        "message": "Razorpay Test Mode Payment Link generated and reminder dispatched [SIMULATED]."
+      }
+    }
+  },
+  {
+    "audit_id": "aud_1788379255229_157",
+    "timestamp": "2026-09-02T20:00:55.229Z",
+    "event_type": "RECOVERY_ACTION_BLOCKED",
+    "raw_event": "payment.failed",
+    "event_id": "event_policy_captured_1788379254797",
+    "payment_id": "pay_demo_captured_908",
+    "amount": 1499,
+    "currency": "INR",
+    "failure_reason": "none",
+    "customer_history": null,
+    "recommended_action": "stop",
+    "recovery_probability": 1,
+    "expected_recovered_amount": 1499,
+    "policy_evaluation": {
+      "allowed": false,
+      "reason": "payment_already_recovered",
+      "action": "stop"
+    },
+    "execution": {
+      "action": "stop",
+      "status": "captured",
+      "execution_mode": "PAYMENT_CAPTURED_RECOVERY_STOPPED",
+      "is_simulated": true,
+      "timestamp": "2026-09-02T20:00:55.067Z"
+    }
+  },
+  {
+    "audit_id": "aud_1788379254247_460",
+    "timestamp": "2026-09-02T20:00:54.247Z",
+    "event_type": "RECOVERY_ACTION_BLOCKED",
+    "raw_event": "payment.failed",
+    "event_id": "event_policy_cooldown_1788379253549",
+    "payment_id": "pay_demo_valid_87",
+    "amount": 999,
+    "currency": "INR",
+    "failure_reason": "insufficient_funds",
+    "customer_history": "previously_recovered_after_reminder",
+    "recommended_action": "reminder",
+    "recovery_probability": 0.69,
+    "expected_recovered_amount": 689.31,
+    "policy_evaluation": {
+      "allowed": false,
+      "reason": "recovery_cooldown_active",
+      "action": "wait"
+    },
+    "execution": {
+      "action": "wait",
+      "status": "blocked",
+      "execution_mode": "POLICY_ENGINE_BLOCKED",
+      "is_simulated": true,
+      "timestamp": "2026-09-02T20:00:54.064Z",
+      "details": {
+        "payment_id": "pay_demo_valid_87",
+        "reason": "recovery_cooldown_active",
+        "message": "Recovery action blocked by Safety & Policy Engine: recovery_cooldown_active"
+      }
+    }
+  },
+  {
+    "audit_id": "aud_1788379253056_888",
+    "timestamp": "2026-09-02T20:00:53.056Z",
+    "event_type": "RECOVERY_ACTION_EXECUTED",
+    "raw_event": "payment.failed",
+    "event_id": "event_policy_valid_1788379251082",
+    "payment_id": "pay_demo_valid_87",
+    "amount": 999,
+    "currency": "INR",
+    "failure_reason": "insufficient_funds",
+    "customer_history": "previously_recovered_after_reminder",
+    "recommended_action": "reminder",
+    "recovery_probability": 0.69,
+    "expected_recovered_amount": 689.31,
+    "policy_evaluation": {
+      "allowed": true,
+      "reason": "policy_checks_passed",
+      "action": "execute"
+    },
+    "execution": {
+      "action": "reminder",
+      "status": "executed",
+      "execution_mode": "RAZORPAY_TEST_MODE_SIMULATED",
+      "is_simulated": true,
+      "timestamp": "2026-09-02T20:00:52.172Z",
+      "details": {
+        "payment_id": "pay_demo_valid_87",
+        "payment_link_id": "plink_test_1788379252844_2",
+        "payment_url": "https://rzp.io/i/test_link_plink_test_1788379252844_2",
+        "message": "Razorpay Test Mode Payment Link generated and reminder dispatched [SIMULATED]."
+      }
+    }
+  },
+  {
+    "audit_id": "aud_1788379246488_743",
+    "timestamp": "2026-09-02T20:00:46.488Z",
+    "event_type": "PAYMENT_CAPTURED_RECOVERY_STOPPED",
+    "raw_event": "payment.captured",
+    "event_id": "event_captured_1788379246102_723",
+    "payment_id": "pay_test_failed_1788379243771_969",
+    "amount": 1499,
+    "currency": "INR",
+    "failure_reason": "none",
+    "customer_history": null,
+    "recommended_action": "stop",
+    "recovery_probability": 1,
+    "expected_recovered_amount": 1499,
+    "policy_evaluation": {
+      "allowed": false,
+      "reason": "payment_already_recovered",
+      "action": "stop"
+    },
+    "execution": {
+      "action": "stop",
+      "status": "captured",
+      "execution_mode": "PAYMENT_CAPTURED_RECOVERY_STOPPED",
+      "is_simulated": true,
+      "timestamp": "2026-09-02T20:00:46.320Z"
+    }
+  },
+  {
+    "audit_id": "aud_1788379245699_968",
+    "timestamp": "2026-09-02T20:00:45.699Z",
+    "event_type": "RECOVERY_ACTION_EXECUTED",
+    "raw_event": "payment.failed",
+    "event_id": "event_failed_1788379243771_128",
+    "payment_id": "pay_test_failed_1788379243771_969",
+    "amount": 1499,
+    "currency": "INR",
+    "failure_reason": "insufficient_funds",
+    "customer_history": "previously_recovered_after_reminder",
+    "recommended_action": "reminder",
+    "recovery_probability": 0.69,
+    "expected_recovered_amount": 1034.31,
+    "policy_evaluation": {
+      "allowed": true,
+      "reason": "policy_checks_passed",
+      "action": "execute"
+    },
+    "execution": {
+      "action": "reminder",
+      "status": "executed",
+      "execution_mode": "RAZORPAY_TEST_MODE_SIMULATED",
+      "is_simulated": true,
+      "timestamp": "2026-09-02T20:00:44.680Z",
+      "details": {
+        "payment_id": "pay_test_failed_1788379243771_969",
+        "payment_link_id": "plink_test_1788379245492_7",
+        "payment_url": "https://rzp.io/i/test_link_plink_test_1788379245492_7",
+        "message": "Razorpay Test Mode Payment Link generated and reminder dispatched [SIMULATED]."
+      }
+    }
+  },
+  {
+    "audit_id": "aud_1788379232301_113",
+    "timestamp": "2026-09-02T20:00:32.301Z",
+    "event_type": "PAYMENT_CAPTURED_RECOVERY_STOPPED",
+    "raw_event": "payment.captured",
+    "event_id": "event_captured_1788379231907_198",
+    "payment_id": "pay_test_failed_1788379230413_244",
+    "amount": 1499,
+    "currency": "INR",
+    "failure_reason": "none",
+    "customer_history": null,
+    "recommended_action": "stop",
+    "recovery_probability": 1,
+    "expected_recovered_amount": 1499,
+    "policy_evaluation": {
+      "allowed": false,
+      "reason": "payment_already_recovered",
+      "action": "stop"
+    },
+    "execution": {
+      "action": "stop",
+      "status": "captured",
+      "execution_mode": "PAYMENT_CAPTURED_RECOVERY_STOPPED",
+      "is_simulated": true,
+      "timestamp": "2026-09-02T20:00:32.157Z"
+    }
+  },
+  {
+    "audit_id": "aud_1788379231513_188",
+    "timestamp": "2026-09-02T20:00:31.513Z",
+    "event_type": "RECOVERY_ACTION_BLOCKED",
+    "raw_event": "payment.failed",
+    "event_id": "event_failed_1788379230413_323",
+    "payment_id": "pay_test_failed_1788379230413_244",
+    "amount": 1499,
+    "currency": "INR",
+    "failure_reason": "insufficient_funds",
+    "customer_history": "previously_recovered_after_reminder",
+    "recommended_action": "reminder",
+    "recovery_probability": 0.69,
+    "expected_recovered_amount": 1034.31,
+    "policy_evaluation": {
+      "allowed": false,
+      "reason": "recovery_window_expired",
+      "action": "stop"
+    },
+    "execution": {
+      "action": "stop",
+      "status": "blocked",
+      "execution_mode": "POLICY_ENGINE_BLOCKED",
+      "is_simulated": true,
+      "timestamp": "2026-09-02T20:00:31.326Z",
+      "details": {
+        "payment_id": "pay_test_failed_1788379230413_244",
+        "reason": "recovery_window_expired",
+        "message": "Recovery action blocked by Safety & Policy Engine: recovery_window_expired"
+      }
+    }
+  },
+  {
+    "audit_id": "aud_1788379222716_786",
+    "timestamp": "2026-09-02T20:00:22.716Z",
+    "event_type": "PAYMENT_CAPTURED_RECOVERY_STOPPED",
+    "raw_event": "payment.captured",
+    "event_id": "event_captured_1788379222339",
+    "payment_id": "pay_test_failed_94",
+    "amount": 1499,
+    "currency": "INR",
+    "failure_reason": "none",
+    "customer_history": null,
+    "recommended_action": "stop",
+    "recovery_probability": 1,
+    "expected_recovered_amount": 1499,
+    "policy_evaluation": {
+      "allowed": false,
+      "reason": "payment_already_recovered",
+      "action": "stop"
+    },
+    "execution": {
+      "action": "stop",
+      "status": "captured",
+      "execution_mode": "PAYMENT_CAPTURED_RECOVERY_STOPPED",
+      "is_simulated": true,
+      "timestamp": "2026-09-02T20:00:22.561Z"
+    }
+  },
+  {
+    "audit_id": "aud_1788379221871_711",
+    "timestamp": "2026-09-02T20:00:21.871Z",
+    "event_type": "RECOVERY_ACTION_BLOCKED",
+    "raw_event": "payment.failed",
+    "event_id": "event_failed_1788379220778",
+    "payment_id": "pay_test_failed_94",
+    "amount": 1499,
+    "currency": "INR",
+    "failure_reason": "insufficient_funds",
+    "customer_history": "previously_recovered_after_reminder",
+    "recommended_action": "reminder",
+    "recovery_probability": 0.69,
+    "expected_recovered_amount": 1034.31,
+    "policy_evaluation": {
+      "allowed": false,
+      "reason": "recovery_window_expired",
+      "action": "stop"
+    },
+    "execution": {
+      "action": "stop",
+      "status": "blocked",
+      "execution_mode": "POLICY_ENGINE_BLOCKED",
+      "is_simulated": true,
+      "timestamp": "2026-09-02T20:00:21.655Z",
+      "details": {
+        "payment_id": "pay_test_failed_94",
+        "reason": "recovery_window_expired",
+        "message": "Recovery action blocked by Safety & Policy Engine: recovery_window_expired"
+      }
+    }
+  },
+  {
+    "audit_id": "aud_1788379209204_553",
+    "timestamp": "2026-09-02T20:00:09.204Z",
+    "event_type": "PAYMENT_CAPTURED_RECOVERY_STOPPED",
+    "raw_event": "payment.captured",
+    "event_id": "event_captured_1788379208835",
+    "payment_id": "pay_test_failed_446",
+    "amount": 1499,
+    "currency": "INR",
+    "failure_reason": "none",
+    "customer_history": null,
+    "recommended_action": "stop",
+    "recovery_probability": 1,
+    "expected_recovered_amount": 1499,
+    "policy_evaluation": {
+      "allowed": false,
+      "reason": "payment_already_recovered",
+      "action": "stop"
+    },
+    "execution": {
+      "action": "stop",
+      "status": "captured",
+      "execution_mode": "PAYMENT_CAPTURED_RECOVERY_STOPPED",
+      "is_simulated": true,
+      "timestamp": "2026-09-02T20:00:09.043Z"
+    }
+  },
+  {
+    "audit_id": "aud_1788379208454_911",
+    "timestamp": "2026-09-02T20:00:08.454Z",
+    "event_type": "RECOVERY_ACTION_BLOCKED",
+    "raw_event": "payment.failed",
+    "event_id": "event_failed_1788379207286",
+    "payment_id": "pay_test_failed_446",
+    "amount": 1499,
+    "currency": "INR",
+    "failure_reason": "insufficient_funds",
+    "customer_history": "previously_recovered_after_reminder",
+    "recommended_action": "reminder",
+    "recovery_probability": 0.69,
+    "expected_recovered_amount": 1034.31,
+    "policy_evaluation": {
+      "allowed": false,
+      "reason": "recovery_window_expired",
+      "action": "stop"
+    },
+    "execution": {
+      "action": "stop",
+      "status": "blocked",
+      "execution_mode": "POLICY_ENGINE_BLOCKED",
+      "is_simulated": true,
+      "timestamp": "2026-09-02T20:00:08.244Z",
+      "details": {
+        "payment_id": "pay_test_failed_446",
+        "reason": "recovery_window_expired",
+        "message": "Recovery action blocked by Safety & Policy Engine: recovery_window_expired"
+      }
+    }
+  },
+  {
+    "audit_id": "aud_1788379192830_949",
+    "timestamp": "2026-09-02T19:59:52.830Z",
+    "event_type": "PAYMENT_CAPTURED_RECOVERY_STOPPED",
+    "raw_event": "payment.captured",
+    "event_id": "evt_captured_1788379192405",
+    "payment_id": "pay_captured_test_1788379192405",
+    "amount": 1499,
+    "currency": "INR",
+    "failure_reason": "none",
+    "customer_history": null,
+    "recommended_action": "stop",
+    "recovery_probability": 1,
+    "expected_recovered_amount": 1499,
+    "policy_evaluation": {
+      "allowed": false,
+      "reason": "payment_already_recovered",
+      "action": "stop"
+    },
+    "execution": {
+      "action": "stop",
+      "status": "captured",
+      "execution_mode": "PAYMENT_CAPTURED_RECOVERY_STOPPED",
+      "is_simulated": true,
+      "timestamp": "2026-09-02T19:59:52.680Z"
+    }
+  },
+  {
+    "audit_id": "aud_1788379192126_263",
+    "timestamp": "2026-09-02T19:59:52.126Z",
+    "event_type": "RECOVERY_ACTION_EXECUTED",
+    "raw_event": "payment.failed",
+    "event_id": "evt_failed_1788379188863",
+    "payment_id": "pay_wh_test_1788379188863",
+    "amount": 999,
+    "currency": "INR",
+    "failure_reason": "insufficient_funds",
+    "customer_history": "previously_recovered_after_reminder",
+    "recommended_action": "reminder",
+    "recovery_probability": 0.69,
+    "expected_recovered_amount": 689.31,
+    "policy_evaluation": {
+      "allowed": true,
+      "reason": "policy_checks_passed",
+      "action": "execute"
+    },
+    "execution": {
+      "action": "reminder",
+      "status": "executed",
+      "execution_mode": "RAZORPAY_TEST_MODE_SIMULATED",
+      "is_simulated": true,
+      "timestamp": "2026-09-02T19:59:49.557Z",
+      "details": {
+        "payment_id": "pay_wh_test_1788379188863",
+        "payment_link_id": "plink_test_1788379191917_467",
+        "payment_url": "https://rzp.io/i/test_link_plink_test_1788379191917_467",
+        "message": "Razorpay Test Mode Payment Link generated and reminder dispatched [SIMULATED]."
+      }
+    }
+  },
+  {
     "audit_id": "aud_1788377332167_102",
     "timestamp": "2026-09-02T19:28:52.167Z",
     "event_type": "PAYMENT_CAPTURED_RECOVERY_STOPPED",

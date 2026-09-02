@@ -16,14 +16,16 @@ class PolicyEngine {
     const paymentId = paymentContext.payment_id;
 
     // Filter audit logs relevant to this payment_id
-    const paymentLogs = auditHistory.filter(log => log.payment_id === paymentId);
+    const safeLogs = Array.isArray(auditHistory) ? auditHistory : [];
+    const paymentLogs = safeLogs.filter(log => log && log.payment_id === paymentId);
 
     // Rule 1: PAYMENT_SUCCESS
     const isCaptured = paymentContext.status === 'captured' || paymentContext.status === 'success';
     const logAlreadyCaptured = paymentLogs.some(log => 
+      log.execution?.status === 'captured' || 
       log.execution_details?.status === 'captured' || 
-      log.execution_details?.status === 'success' ||
-      log.status === 'captured'
+      log.status === 'captured' ||
+      log.event_type === 'PAYMENT_CAPTURED_RECOVERY_STOPPED'
     );
 
     if (isCaptured || logAlreadyCaptured) {
@@ -37,7 +39,13 @@ class PolicyEngine {
     // Rule 2: RECOVERY_WINDOW (Payment older than 72 hours)
     const failureTimeStr = paymentContext.failure_timestamp || paymentContext.created_at || paymentContext.timestamp;
     if (failureTimeStr) {
-      const failureTime = new Date(failureTimeStr).getTime();
+      let failureTime = NaN;
+      if (typeof failureTimeStr === 'number') {
+        failureTime = failureTimeStr < 10000000000 ? failureTimeStr * 1000 : failureTimeStr;
+      } else {
+        failureTime = new Date(failureTimeStr).getTime();
+      }
+
       if (!isNaN(failureTime) && (now - failureTime) > EXPIRY_WINDOW_MS) {
         return {
           allowed: false,
@@ -47,12 +55,15 @@ class PolicyEngine {
       }
     }
 
+    // Helper to identify executed recovery attempts
+    const isExecuted = (log) => {
+      if (!log) return false;
+      const status = log.execution?.status || log.execution_details?.status || log.execution_status || log.status;
+      return status === 'executed' || status === 'scheduled' || log.event_type === 'RECOVERY_ACTION_EXECUTED' || log.policy_evaluation?.allowed === true;
+    };
+
     // Rule 3: MAX_ATTEMPTS (Maximum 3 attempts)
-    const previousAttemptsCount = paymentLogs.filter(log => 
-      log.execution_status === 'executed' || 
-      log.execution_status === 'scheduled' ||
-      log.policy_evaluation?.allowed === true
-    ).length;
+    const previousAttemptsCount = paymentLogs.filter(isExecuted).length;
 
     if (previousAttemptsCount >= MAX_ALLOWED_ATTEMPTS) {
       return {
@@ -63,7 +74,7 @@ class PolicyEngine {
     }
 
     // Rule 4: COOLDOWN (Immediate repeated actions within 24 hours)
-    const executionLogs = paymentLogs.filter(log => log.timestamp && (log.execution_status === 'executed' || log.execution_status === 'scheduled'));
+    const executionLogs = paymentLogs.filter(log => log.timestamp && isExecuted(log));
     if (executionLogs.length > 0) {
       const lastExecutionTime = new Date(executionLogs[executionLogs.length - 1].timestamp).getTime();
       if (!isNaN(lastExecutionTime) && (now - lastExecutionTime) < COOLDOWN_MS) {

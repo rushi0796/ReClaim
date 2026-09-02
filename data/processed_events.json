@@ -1017,5 +1017,75 @@
     "payment_id": "pay_demo_valid_640",
     "action": "reminder",
     "status": "executed"
+  },
+  "event_policy_valid_1788379509298": {
+    "processed_at": "2026-09-02T20:05:11.375Z",
+    "payment_id": "pay_demo_valid_590",
+    "action": "reminder",
+    "status": "executed"
+  },
+  "event_policy_cooldown_1788379512044": {
+    "processed_at": "2026-09-02T20:05:12.460Z",
+    "payment_id": "pay_demo_valid_590",
+    "action": "wait",
+    "status": "blocked"
+  },
+  "event_policy_captured_1788379512977": {
+    "processed_at": "2026-09-02T20:05:13.259Z",
+    "payment_id": "pay_demo_captured_857",
+    "status": "captured"
+  },
+  "evt_scen_a_1788379531346": {
+    "processed_at": "2026-09-02T20:05:33.112Z",
+    "payment_id": "pay_scen_a_1788379531346",
+    "action": "reminder",
+    "status": "executed"
+  },
+  "evt_scen_b_1788379531346": {
+    "processed_at": "2026-09-02T20:05:34.259Z",
+    "payment_id": "pay_scen_b_1788379531346",
+    "action": "payment_method_update",
+    "status": "executed"
+  },
+  "evt_scen_c_1788379531346": {
+    "processed_at": "2026-09-02T20:05:35.392Z",
+    "payment_id": "pay_scen_c_1788379531346",
+    "action": "escalate",
+    "status": "blocked"
+  },
+  "evt_scen_d_1788379531346": {
+    "processed_at": "2026-09-02T20:05:36.460Z",
+    "payment_id": "pay_scen_d_1788379531346",
+    "action": "escalate",
+    "status": "blocked"
+  },
+  "evt_scen_e_1788379531346": {
+    "processed_at": "2026-09-02T20:05:37.337Z",
+    "payment_id": "pay_scen_e_1788379531346",
+    "action": "escalate",
+    "status": "blocked"
+  },
+  "evt_scen_f_dup_1788379531346": {
+    "processed_at": "2026-09-02T20:05:38.941Z",
+    "payment_id": "pay_scen_f_1788379531346",
+    "action": "reminder",
+    "status": "executed"
+  },
+  "evt_scen_g_1788379531346": {
+    "processed_at": "2026-09-02T20:05:39.790Z",
+    "payment_id": "pay_demo_captured_69",
+    "status": "captured"
+  },
+  "evt_scen_h_1788379531346": {
+    "processed_at": "2026-09-02T20:05:40.739Z",
+    "payment_id": "pay_demo_maxattempts_257",
+    "action": "wait",
+    "status": "blocked"
+  },
+  "evt_scen_i_1788379531346": {
+    "processed_at": "2026-09-02T20:05:41.666Z",
+    "payment_id": "pay_demo_valid_640",
+    "action": "wait",
+    "status": "blocked"
   }
 }

@@ -5,11 +5,79 @@ const BatchRecoveryService = require('./batchRecoveryService');
 const BatchValidationService = require('./batchValidationService');
 const RecoveryActionExecutor = require('./recoveryActionExecutor');
 const AiReasoningService = require('./aiReasoningService');
+const RazorpayService = require('./razorpayService');
 const { isEventProcessed, markEventProcessed } = require('../utils/idempotency');
 const { logDecision, logWebhookExecution } = require('../utils/auditLogger');
 const PolicyService = require('./policyService');
 
 class RecoveryService {
+  /**
+   * Synchronizes failed Test Mode payments directly from Razorpay API.
+   * @returns {Promise<Object>}
+   */
+  static async syncRazorpayFailedPayments() {
+    try {
+      const rawItems = await RazorpayService.fetchFailedPayments({ count: 20 });
+      const syncedPayments = [];
+
+      for (const item of rawItems) {
+        const rawAmount = item.amount || 0;
+        const amountInINR = rawAmount >= 100 ? rawAmount / 100 : rawAmount;
+        const currency = item.currency || 'INR';
+
+        const rawFailure = item.error_reason || item.error_code || 'payment_failed';
+        const errorCode = item.error_code || null;
+        const errorDescription = item.error_description || null;
+        const errorSource = item.error_source || null;
+        const errorStep = item.error_step || null;
+
+        let normalizedFailure = 'insufficient_funds';
+        const lowerFailure = String(rawFailure).toLowerCase() + ' ' + String(errorSource).toLowerCase() + ' ' + String(errorDescription).toLowerCase();
+
+        if (lowerFailure.includes('fund') || lowerFailure.includes('balance') || lowerFailure.includes('insufficient')) {
+          normalizedFailure = 'insufficient_funds';
+        } else if (lowerFailure.includes('expire') || lowerFailure.includes('card_expired')) {
+          normalizedFailure = 'expired_card';
+        } else if (lowerFailure.includes('decline') || lowerFailure.includes('bank') || lowerFailure.includes('issuer') || lowerFailure.includes('authorization') || lowerFailure.includes('payment_failed')) {
+          normalizedFailure = 'bank_declined';
+        } else if (lowerFailure.includes('network') || lowerFailure.includes('timeout') || lowerFailure.includes('gateway')) {
+          normalizedFailure = 'network_error';
+        }
+
+        const paymentRecord = {
+          payment_id: item.id,
+          amount: amountInINR,
+          currency: currency,
+          failure_reason: normalizedFailure,
+          raw_error_reason: rawFailure,
+          error_code: errorCode,
+          error_description: errorDescription,
+          error_source: errorSource,
+          error_step: errorStep,
+          customer_history: item.notes?.customer_history || 'first_time_failure',
+          status: item.status || 'failed',
+          created_at: item.created_at ? new Date(item.created_at * 1000).toISOString() : new Date().toISOString()
+        };
+
+        const saved = DatasetService.saveLivePayment(paymentRecord);
+        syncedPayments.push(saved);
+      }
+
+      return {
+        status: 'success',
+        synced_count: syncedPayments.length,
+        payments: syncedPayments
+      };
+    } catch (error) {
+      return {
+        status: 'error',
+        message: error.message,
+        synced_count: 0,
+        payments: []
+      };
+    }
+  }
+
   /**
    * Processes the payment dataset as a batch analysis.
    * @returns {Object} Batch analytics summary

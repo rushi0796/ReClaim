@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const RecoveryService = require('../services/recoveryService');
+const DatasetService = require('../services/datasetService');
+const PersistentStorageService = require('../services/persistentStorageService');
 const { getAuditLogs } = require('../utils/auditLogger');
 
 /**
@@ -17,10 +19,55 @@ router.get('/audit', (req, res) => {
 });
 
 /**
+ * GET /api/recovery/diagnostics
+ * Non-sensitive production system metadata for storage and integration status.
+ */
+router.get('/diagnostics', (req, res) => {
+  try {
+    const kv = PersistentStorageService.getKvCredentials();
+    const livePayments = DatasetService.getLivePayments();
+    const logs = getAuditLogs();
+
+    return res.json({
+      environment: process.env.NODE_ENV || 'production',
+      storage_provider: kv ? 'kv_redis_rest' : 'local_tmp_fallback',
+      cloud_storage_configured: Boolean(kv),
+      razorpay_credentials_configured: Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET),
+      webhook_secret_configured: Boolean(process.env.RAZORPAY_WEBHOOK_SECRET),
+      gemini_configured: Boolean(process.env.GEMINI_API_KEY),
+      persisted_live_payments_count: livePayments.length,
+      audit_logs_count: logs.length,
+      last_audit_event: logs[0] ? { timestamp: logs[0].timestamp, event_type: logs[0].event_type, payment_id: logs[0].payment_id } : null,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    return res.status(500).json({ error: 'Diagnostics fetch error', details: error.message });
+  }
+});
+
+/**
+ * POST /api/recovery/sync
+ * Securely synchronizes failed Test Mode payments directly from Razorpay API.
+ */
+router.post('/sync', async (req, res) => {
+  try {
+    const syncResult = await RecoveryService.syncRazorpayFailedPayments();
+    return res.json(syncResult);
+  } catch (error) {
+    console.error('Error synchronizing Razorpay payments:', error);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to synchronize Razorpay failed payments',
+      details: error.message
+    });
+  }
+});
+
+/**
  * POST /api/recovery/analyze
  * Main recovery decision engine endpoint analyzing failed payment context.
  */
-router.post('/analyze', (req, res) => {
+router.post('/analyze', async (req, res) => {
   const { payment_id, amount, failure_reason } = req.body;
 
   if (!payment_id || amount === undefined || amount === null || !failure_reason) {
@@ -36,7 +83,7 @@ router.post('/analyze', (req, res) => {
   }
 
   try {
-    const analysisResult = RecoveryService.analyzeRecovery(req.body);
+    const analysisResult = await RecoveryService.analyzeRecovery(req.body);
     return res.json(analysisResult);
   } catch (error) {
     console.error('Error executing recovery analysis:', error);
@@ -65,10 +112,10 @@ router.post('/validate', (req, res) => {
 });
 
 /**
- * POST /api/recovery/batch-analyze
- * Batch analysis endpoint processing all historical payment failures.
+ * GET & POST /api/recovery/batch-analyze
+ * Batch analysis endpoint processing live Razorpay payments and historical data.
  */
-router.post('/batch-analyze', (req, res) => {
+const handleBatchAnalyze = (req, res) => {
   try {
     const batchResult = RecoveryService.analyzeBatchRecovery();
     return res.json(batchResult);
@@ -79,11 +126,14 @@ router.post('/batch-analyze', (req, res) => {
       details: error.message
     });
   }
-});
+};
+
+router.get('/batch-analyze', handleBatchAnalyze);
+router.post('/batch-analyze', handleBatchAnalyze);
 
 /**
  * POST /api/recovery/batch-validate
- * Out-of-sample LOOCV batch backtesting endpoint preventing selection bias.
+ * Out-of-sample LOOCV batch backtesting endpoint.
  */
 router.post('/batch-validate', (req, res) => {
   try {

@@ -28,6 +28,22 @@ export default function App() {
     }
   };
 
+  const refreshData = async () => {
+    try {
+      const [b, logs] = await Promise.all([
+        batchAnalyze().catch(() => null),
+        fetchAuditLogs().catch(() => [])
+      ]);
+      setBatchData(b);
+      setAuditLogs(logs);
+      if (b && b.decisions) {
+        setPaymentsList(b.decisions);
+      }
+    } catch (err) {
+      console.warn('Failed to refresh data:', err.message);
+    }
+  };
+
   useEffect(() => {
     async function initData() {
       try {
@@ -71,6 +87,7 @@ export default function App() {
             payments={paymentsList}
             auditLogs={auditLogs}
             onRefreshAudit={loadAuditLogs}
+            onRefreshQueue={refreshData}
             onNavigateAudit={handleNavigateAudit}
           />
         );
@@ -79,8 +96,8 @@ export default function App() {
         return (
           <Payments
             payments={paymentsList}
-            auditLogs={auditLogs}
             onRefreshAudit={loadAuditLogs}
+            onRefreshQueue={refreshData}
             onNavigateAudit={handleNavigateAudit}
           />
         );
@@ -88,9 +105,9 @@ export default function App() {
       case 'recovery':
         return (
           <Recovery
-            batchData={batchData}
-            auditLogs={auditLogs}
             payments={paymentsList}
+            onRefreshAudit={loadAuditLogs}
+            onNavigateAudit={handleNavigateAudit}
           />
         );
 
@@ -106,6 +123,7 @@ export default function App() {
         return (
           <Audit
             auditLogs={auditLogs}
+            onRefresh={loadAuditLogs}
           />
         );
 
@@ -115,8 +133,8 @@ export default function App() {
             batchData={batchData}
             batchValidationData={batchValidationData}
             payments={paymentsList}
-            auditLogs={auditLogs}
             onRefreshAudit={loadAuditLogs}
+            onRefreshQueue={refreshData}
             onNavigateAudit={handleNavigateAudit}
           />
         );
@@ -124,58 +142,48 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row font-sans text-slate-900 selection:bg-slate-900 selection:text-white">
-      {/* Topbar for Mobile */}
-      <Topbar
-        setIsMobileOpen={setIsMobileOpen}
-        activePage={activePage}
-        setActivePage={setActivePage}
-      />
-
-      {/* Sidebar for Desktop & Drawer for Mobile */}
+    <div className="min-h-screen bg-slate-50 flex text-slate-900 font-sans antialiased">
+      {/* Sidebar Navigation */}
       <Sidebar
         activePage={activePage}
         setActivePage={setActivePage}
-        isMobileOpen={isMobileOpen}
-        setIsMobileOpen={setIsMobileOpen}
-        health={healthData}
       />
 
-      {/* Main Content Area Wrapper */}
-      <div className="flex-1 min-w-0 flex flex-col justify-between">
-        {/* Desktop Header Strip */}
-        <header className="hidden lg:flex items-center justify-between px-8 h-14 bg-white border-b border-slate-200">
-          <div className="flex items-center space-x-2">
-            <span className="font-bold text-xs tracking-tight text-slate-900">RECLAIM</span>
-            <span className="text-slate-300 font-bold text-xs">•</span>
-            <span className="text-xs text-slate-500 font-medium">AI Revenue Recovery</span>
-          </div>
+      {/* Main Container */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top Header Navigation */}
+        <Topbar
+          activePage={activePage}
+          setActivePage={setActivePage}
+          isMobileOpen={isMobileOpen}
+          setIsMobileOpen={setIsMobileOpen}
+        />
 
-          <div className="flex items-center space-x-3 text-xs font-mono">
-            <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px] font-semibold border border-slate-200">
-              TEST MODE
-            </span>
-            <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
-              RUSHIKESH.STUDIO
-            </span>
-          </div>
-        </header>
-
-        <main className="max-w-[1280px] w-full mx-auto px-4 sm:px-6 md:px-8 py-6 space-y-6 flex-1">
+        {/* Content Area */}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
           {isLoading ? (
-            <div className="py-12 text-center space-y-3">
-              <div className="w-7 h-7 rounded-full border-2 border-slate-900 border-t-transparent animate-spin mx-auto"></div>
-              <p className="text-xs text-slate-500 font-mono">Loading RECLAIM recovery engine data...</p>
+            <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-3">
+              <div className="w-8 h-8 rounded-full border-2 border-slate-900 border-t-transparent animate-spin"></div>
+              <span className="text-xs text-slate-500 font-mono">Initializing RECLAIM AI Engine...</span>
             </div>
           ) : (
             renderPage()
           )}
         </main>
 
-        {/* Minimal Footer */}
-        <footer className="border-t border-slate-200/80 bg-white py-3 px-6 text-center text-[11px] text-slate-500 font-mono flex items-center justify-between max-w-[1280px] w-full mx-auto">
-          <span>© 2026 RUSHIKESH.STUDIO</span>
-          <span className="text-slate-400">Built with ReClaim</span>
+        {/* Footer Attribution */}
+        <footer className="py-4 px-6 border-t border-slate-200 bg-white text-center text-xs text-slate-500 font-sans">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 max-w-7xl mx-auto">
+            <div className="flex items-center space-x-1 font-mono text-[11px]">
+              <span className="font-bold text-slate-900">RECLAIM</span>
+              <span>v1.0.0</span>
+              <span className="text-slate-300">•</span>
+              <span className="text-slate-500">Razorpay Buildathon Edition</span>
+            </div>
+            <div className="text-[11px]">
+              Created by <span className="font-bold text-slate-900">RUSHIKESH.STUDIO</span>
+            </div>
+          </div>
         </footer>
       </div>
     </div>

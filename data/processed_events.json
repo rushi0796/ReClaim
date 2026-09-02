@@ -870,5 +870,16 @@
     "processed_at": "2026-09-02T19:10:54.779Z",
     "payment_id": "pay_captured_test_1788376254772",
     "status": "captured"
+  },
+  "evt_failed_1788376736138": {
+    "processed_at": "2026-09-02T19:18:56.165Z",
+    "payment_id": "pay_wh_test_1788376736138",
+    "action": "reminder",
+    "status": "executed"
+  },
+  "evt_captured_1788376736181": {
+    "processed_at": "2026-09-02T19:18:56.196Z",
+    "payment_id": "pay_captured_test_1788376736181",
+    "status": "captured"
   }
 }

@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import PaymentRow from './PaymentRow';
+import { syncRazorpayPayments } from '../services/api';
 
-export default function RecoveryQueue({ payments = [], selectedPayment, onSelectPayment }) {
+export default function RecoveryQueue({ payments = [], selectedPayment, onSelectPayment, onRefreshQueue }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [reasonFilter, setReasonFilter] = useState('all');
   const [actionFilter, setActionFilter] = useState('all');
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncStatusMsg, setSyncStatusMsg] = useState(null);
 
   const filteredPayments = payments.filter(p => {
     const q = searchQuery.toLowerCase().trim();
@@ -14,6 +17,25 @@ export default function RecoveryQueue({ payments = [], selectedPayment, onSelect
     const matchesAction = actionFilter === 'all' || p.recommended_action === actionFilter;
     return matchesSearch && matchesReason && matchesAction;
   });
+
+  const handleSyncClick = async () => {
+    setIsSyncing(true);
+    setSyncStatusMsg('Syncing with Razorpay API...');
+    try {
+      const res = await syncRazorpayPayments();
+      if (res.status === 'success') {
+        setSyncStatusMsg(`Successfully synced ${res.synced_count} payment(s) from Razorpay!`);
+        if (onRefreshQueue) onRefreshQueue();
+      } else {
+        setSyncStatusMsg(res.message || 'Sync complete with warnings.');
+      }
+    } catch (err) {
+      setSyncStatusMsg(`Sync error: ${err.message}`);
+    } finally {
+      setIsSyncing(false);
+      setTimeout(() => setSyncStatusMsg(null), 5000);
+    }
+  };
 
   return (
     <div className="bg-white border border-slate-200 rounded-lg shadow-2xs overflow-hidden">
@@ -26,7 +48,23 @@ export default function RecoveryQueue({ payments = [], selectedPayment, onSelect
               Click any payment to inspect empirical decision model ({filteredPayments.length} records)
             </p>
           </div>
+
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={handleSyncClick}
+              disabled={isSyncing}
+              className="text-xs font-mono font-semibold px-3 py-1.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 transition flex items-center space-x-1 shadow-2xs disabled:opacity-50"
+            >
+              <span>{isSyncing ? 'Syncing...' : 'Sync Razorpay 🔄'}</span>
+            </button>
+          </div>
         </div>
+
+        {syncStatusMsg && (
+          <div className="text-[11px] font-mono text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded">
+            {syncStatusMsg}
+          </div>
+        )}
 
         {/* Filter Inputs */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">

@@ -1,5 +1,65 @@
 [
   {
+    "audit_id": "aud_1788376736206_704",
+    "timestamp": "2026-09-02T19:18:56.206Z",
+    "event_type": "PAYMENT_CAPTURED_RECOVERY_STOPPED",
+    "raw_event": "payment.captured",
+    "event_id": "evt_captured_1788376736181",
+    "payment_id": "pay_captured_test_1788376736181",
+    "amount": 1499,
+    "currency": "INR",
+    "failure_reason": "none",
+    "customer_history": null,
+    "recommended_action": "stop",
+    "recovery_probability": 1,
+    "expected_recovered_amount": 1499,
+    "policy_evaluation": {
+      "allowed": false,
+      "reason": "payment_already_recovered",
+      "action": "stop"
+    },
+    "execution": {
+      "action": "stop",
+      "status": "captured",
+      "execution_mode": "PAYMENT_CAPTURED_RECOVERY_STOPPED",
+      "is_simulated": true,
+      "timestamp": "2026-09-02T19:18:56.195Z"
+    }
+  },
+  {
+    "audit_id": "aud_1788376736170_437",
+    "timestamp": "2026-09-02T19:18:56.170Z",
+    "event_type": "RECOVERY_ACTION_EXECUTED",
+    "raw_event": "payment.failed",
+    "event_id": "evt_failed_1788376736138",
+    "payment_id": "pay_wh_test_1788376736138",
+    "amount": 999,
+    "currency": "INR",
+    "failure_reason": "insufficient_funds",
+    "customer_history": "previously_recovered_after_reminder",
+    "recommended_action": "reminder",
+    "recovery_probability": 0.69,
+    "expected_recovered_amount": 689.31,
+    "policy_evaluation": {
+      "allowed": true,
+      "reason": "policy_checks_passed",
+      "action": "execute"
+    },
+    "execution": {
+      "action": "reminder",
+      "status": "executed",
+      "execution_mode": "RAZORPAY_TEST_MODE_SIMULATED",
+      "is_simulated": true,
+      "timestamp": "2026-09-02T19:18:56.165Z",
+      "details": {
+        "payment_id": "pay_wh_test_1788376736138",
+        "payment_link_id": "plink_test_1788376736165_658",
+        "payment_url": "https://rzp.io/i/test_link_plink_test_1788376736165_658",
+        "message": "Razorpay Test Mode Payment Link generated and reminder dispatched [SIMULATED]."
+      }
+    }
+  },
+  {
     "audit_id": "aud_1788376254782_285",
     "timestamp": "2026-09-02T19:10:54.782Z",
     "event_type": "PAYMENT_CAPTURED_RECOVERY_STOPPED",

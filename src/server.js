@@ -19,7 +19,13 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.use(express.json());
+
+// Preserve raw body buffer for byte-accurate HMAC SHA256 webhook signature verification
+app.use(express.json({
+  verify: (req, res, buf) => {
+    req.rawBody = buf;
+  }
+}));
 
 // Routes
 app.use('/', healthRoutes);

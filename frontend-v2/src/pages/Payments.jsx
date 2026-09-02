@@ -3,7 +3,7 @@ import RecoveryQueue from '../components/RecoveryQueue';
 import DecisionPanel from '../components/DecisionPanel';
 import { analyzePayment } from '../services/api';
 
-export default function Payments({ payments = [], onRefreshAudit, onNavigateAudit }) {
+export default function Payments({ payments = [], onRefreshAudit, onRefreshQueue, onNavigateAudit }) {
   const [selectedPayment, setSelectedPayment] = useState(payments[0] || null);
   const [activeDecision, setActiveDecision] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -49,6 +49,7 @@ export default function Payments({ payments = [], onRefreshAudit, onNavigateAudi
             payments={payments}
             selectedPayment={selectedPayment}
             onSelectPayment={handleSelectPayment}
+            onRefreshQueue={onRefreshQueue}
           />
         </div>
 

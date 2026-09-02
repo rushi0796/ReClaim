@@ -19,6 +19,28 @@ class RazorpayService {
   }
 
   /**
+   * Fetches failed Test Mode payments directly from Razorpay API.
+   * @param {Object} [options={ count: 20 }] 
+   * @returns {Promise<Array<Object>>}
+   */
+  static async fetchFailedPayments({ count = 20 } = {}) {
+    const client = this.getClient();
+    if (client) {
+      try {
+        const response = await client.payments.all({
+          count: count,
+          status: 'failed'
+        });
+        return response.items || response || [];
+      } catch (error) {
+        console.warn('Razorpay SDK fetch failed payments warning:', error.message);
+        throw error;
+      }
+    }
+    return [];
+  }
+
+  /**
    * Creates a Razorpay Payment Link in Test Mode, falling back to a simulation adapter if using test dummy keys.
    * @param {Object} options 
    * @returns {Promise<Object>} Created Payment Link details
@@ -80,17 +102,22 @@ class RazorpayService {
 
   /**
    * Verifies Razorpay Webhook Signature using HMAC SHA256.
-   * @param {string} bodyString - Raw JSON body string
+   * Accepts either raw Buffer, stringified JSON, or parsed object body.
+   * @param {string|Buffer} body 
    * @param {string} signature - Header x-razorpay-signature
    * @param {string} secret - Webhook secret from environment
    * @returns {boolean}
    */
-  static verifyWebhookSignature(bodyString, signature, secret) {
+  static verifyWebhookSignature(body, signature, secret) {
     if (!signature || !secret) return false;
     try {
+      const payloadString = Buffer.isBuffer(body)
+        ? body.toString('utf8')
+        : (typeof body === 'string' ? body : JSON.stringify(body));
+
       const expectedSignature = crypto
         .createHmac('sha256', secret)
-        .update(bodyString)
+        .update(payloadString)
         .digest('hex');
 
       const expectedBuf = Buffer.from(expectedSignature);

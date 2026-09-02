@@ -5,7 +5,7 @@ import DecisionPanel from '../components/DecisionPanel';
 import PaymentForm from '../components/PaymentForm';
 import { analyzePayment } from '../services/api';
 
-export default function Overview({ batchData, batchValidationData, payments = [], onRefreshAudit, onNavigateAudit }) {
+export default function Overview({ batchData, batchValidationData, payments = [], onRefreshAudit, onRefreshQueue, onNavigateAudit }) {
   const [selectedPayment, setSelectedPayment] = useState(payments[0] || null);
   const [activeDecision, setActiveDecision] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -177,6 +177,7 @@ export default function Overview({ batchData, batchValidationData, payments = []
               payments={payments}
               selectedPayment={selectedPayment}
               onSelectPayment={handleSelectPayment}
+              onRefreshQueue={onRefreshQueue}
             />
           </div>
 

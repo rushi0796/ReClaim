@@ -8,6 +8,22 @@ export async function fetchHealth() {
   return res.json();
 }
 
+export async function fetchDiagnostics() {
+  const res = await fetch(`${API_BASE_URL}/api/recovery/diagnostics`);
+  if (!res.ok) throw new Error(`Diagnostics fetch failed: ${res.status}`);
+  return res.json();
+}
+
+export async function syncRazorpayPayments() {
+  const res = await fetch(`${API_BASE_URL}/api/recovery/sync`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || `Sync failed: ${res.status}`);
+  return data;
+}
+
 export async function analyzePayment(payload) {
   const res = await fetch(`${API_BASE_URL}/api/recovery/analyze`, {
     method: 'POST',

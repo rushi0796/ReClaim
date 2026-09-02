@@ -1249,5 +1249,86 @@
     "payment_id": "pay_demo_valid_640",
     "action": "wait",
     "status": "blocked"
+  },
+  "event_failed_1788381709391_538": {
+    "processed_at": "2026-09-02T20:41:51.459Z",
+    "payment_id": "pay_test_failed_1788381709391_774",
+    "action": "reminder",
+    "status": "executed"
+  },
+  "event_captured_1788381712188_741": {
+    "processed_at": "2026-09-02T20:41:52.443Z",
+    "payment_id": "pay_test_failed_1788381709391_774",
+    "status": "captured"
+  },
+  "event_policy_valid_1788381717002": {
+    "processed_at": "2026-09-02T20:41:59.047Z",
+    "payment_id": "pay_demo_valid_868",
+    "action": "reminder",
+    "status": "executed"
+  },
+  "event_policy_cooldown_1788381719878": {
+    "processed_at": "2026-09-02T20:42:00.441Z",
+    "payment_id": "pay_demo_valid_868",
+    "action": "wait",
+    "status": "blocked"
+  },
+  "event_policy_captured_1788381721135": {
+    "processed_at": "2026-09-02T20:42:01.388Z",
+    "payment_id": "pay_demo_captured_733",
+    "status": "captured"
+  },
+  "evt_scen_a_1788381740633": {
+    "processed_at": "2026-09-02T20:42:22.666Z",
+    "payment_id": "pay_scen_a_1788381740633",
+    "action": "reminder",
+    "status": "executed"
+  },
+  "evt_scen_b_1788381740633": {
+    "processed_at": "2026-09-02T20:42:23.989Z",
+    "payment_id": "pay_scen_b_1788381740633",
+    "action": "payment_method_update",
+    "status": "executed"
+  },
+  "evt_scen_c_1788381740633": {
+    "processed_at": "2026-09-02T20:42:24.815Z",
+    "payment_id": "pay_scen_c_1788381740633",
+    "action": "escalate",
+    "status": "blocked"
+  },
+  "evt_scen_d_1788381740633": {
+    "processed_at": "2026-09-02T20:42:25.819Z",
+    "payment_id": "pay_scen_d_1788381740633",
+    "action": "escalate",
+    "status": "blocked"
+  },
+  "evt_scen_e_1788381740633": {
+    "processed_at": "2026-09-02T20:42:26.669Z",
+    "payment_id": "pay_scen_e_1788381740633",
+    "action": "escalate",
+    "status": "blocked"
+  },
+  "evt_scen_f_dup_1788381740633": {
+    "processed_at": "2026-09-02T20:42:28.243Z",
+    "payment_id": "pay_scen_f_1788381740633",
+    "action": "reminder",
+    "status": "executed"
+  },
+  "evt_scen_g_1788381740633": {
+    "processed_at": "2026-09-02T20:42:29.017Z",
+    "payment_id": "pay_demo_captured_69",
+    "status": "captured"
+  },
+  "evt_scen_h_1788381740633": {
+    "processed_at": "2026-09-02T20:42:29.999Z",
+    "payment_id": "pay_demo_maxattempts_257",
+    "action": "wait",
+    "status": "blocked"
+  },
+  "evt_scen_i_1788381740633": {
+    "processed_at": "2026-09-02T20:42:30.844Z",
+    "payment_id": "pay_demo_valid_640",
+    "action": "wait",
+    "status": "blocked"
   }
 }

@@ -21,38 +21,28 @@ router.get('/audit', async (req, res) => {
 
 /**
  * GET /api/recovery/env-check
- * SAFE diagnostic endpoint reporting ONLY typeof / boolean presence of environment variable keys.
+ * SAFE diagnostic endpoint reporting ONLY boolean presence and state flags.
  * NEVER returns secret values, partial values, or string lengths.
  */
 router.get('/env-check', (req, res) => {
-  const envKeys = [
-    'UPSTASH_REDIS_REST_URL',
-    'UPSTASH_REDIS_REST_TOKEN',
-    'KV_REST_API_URL',
-    'KV_REST_API_TOKEN',
-    'RAZORPAY_KEY_ID',
-    'RAZORPAY_KEY_SECRET',
-    'RAZORPAY_WEBHOOK_SECRET',
-    'RAZORPAY_KEY',
-    'RAZORPAY_SECRET',
-    'RAZORPAY_WEBHOOK',
-    'WEBHOOK_SECRET',
-    'GEMINI_API_KEY',
-    'GOOGLE_API_KEY',
-    'NODE_ENV',
-    'PORT'
-  ];
-
-  const envPresenceMap = {};
-  for (const key of envKeys) {
-    const val = process.env[key];
-    envPresenceMap[key] = Boolean(val && typeof val === 'string' && val.trim().length > 0 && !val.includes('your_'));
-  }
+  const checkKey = (keyName) => {
+    const val = process.env[keyName];
+    return {
+      is_defined: val !== undefined && val !== null,
+      is_non_empty: Boolean(val && typeof val === 'string' && val.trim().length > 0),
+      is_placeholder: Boolean(val && typeof val === 'string' && (val.includes('your_') || val.includes('dummy'))),
+      is_valid_prefix: Boolean(val && typeof val === 'string' && val.trim().startsWith('rzp_'))
+    };
+  };
 
   return res.json({
     status: 'ok',
     environment: process.env.NODE_ENV || 'production',
-    keys_presence: envPresenceMap,
+    razorpay_key_id: checkKey('RAZORPAY_KEY_ID'),
+    razorpay_key_secret: checkKey('RAZORPAY_KEY_SECRET'),
+    razorpay_webhook_secret: checkKey('RAZORPAY_WEBHOOK_SECRET'),
+    upstash_url: checkKey('UPSTASH_REDIS_REST_URL'),
+    upstash_token: checkKey('UPSTASH_REDIS_REST_TOKEN'),
     timestamp: new Date().toISOString()
   });
 });

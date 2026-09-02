@@ -1,5 +1,193 @@
 [
   {
+    "payment_id": "pay_scen_f_1788381740633",
+    "amount": 999,
+    "currency": "INR",
+    "failure_reason": "insufficient_funds",
+    "raw_error_reason": "insufficient_funds",
+    "error_code": null,
+    "error_description": null,
+    "error_source": null,
+    "error_step": null,
+    "customer_history": "first_time_failure",
+    "customer": {
+      "email": "customer@example.com",
+      "contact": "+919999999999",
+      "name": "Test Merchant Customer"
+    },
+    "status": "failed",
+    "is_live_test_mode": true,
+    "is_real_razorpay": true,
+    "updated_at": "2026-09-02T20:42:27.465Z",
+    "created_at": "2026-09-02T20:42:27.465Z"
+  },
+  {
+    "payment_id": "pay_scen_e_1788381740633",
+    "amount": 500,
+    "currency": "INR",
+    "failure_reason": "network_error",
+    "raw_error_reason": "unmapped_random_gateway_error",
+    "error_code": null,
+    "error_description": null,
+    "error_source": null,
+    "error_step": null,
+    "customer_history": "first_time_failure",
+    "customer": {
+      "email": "customer@example.com",
+      "contact": "+919999999999",
+      "name": "Test Merchant Customer"
+    },
+    "status": "failed",
+    "is_live_test_mode": true,
+    "is_real_razorpay": true,
+    "updated_at": "2026-09-02T20:42:26.438Z",
+    "created_at": "2026-09-02T20:42:26.438Z"
+  },
+  {
+    "payment_id": "pay_scen_d_1788381740633",
+    "amount": 1500,
+    "currency": "INR",
+    "failure_reason": "network_error",
+    "raw_error_reason": "network_error",
+    "error_code": null,
+    "error_description": null,
+    "error_source": null,
+    "error_step": null,
+    "customer_history": "first_time_failure",
+    "customer": {
+      "email": "customer@example.com",
+      "contact": "+919999999999",
+      "name": "Test Merchant Customer"
+    },
+    "status": "failed",
+    "is_live_test_mode": true,
+    "is_real_razorpay": true,
+    "updated_at": "2026-09-02T20:42:25.567Z",
+    "created_at": "2026-09-02T20:42:25.567Z"
+  },
+  {
+    "payment_id": "pay_scen_c_1788381740633",
+    "amount": 2500,
+    "currency": "INR",
+    "failure_reason": "bank_declined",
+    "raw_error_reason": "bank_declined",
+    "error_code": null,
+    "error_description": null,
+    "error_source": null,
+    "error_step": null,
+    "customer_history": "first_time_failure",
+    "customer": {
+      "email": "customer@example.com",
+      "contact": "+919999999999",
+      "name": "Test Merchant Customer"
+    },
+    "status": "failed",
+    "is_live_test_mode": true,
+    "is_real_razorpay": true,
+    "updated_at": "2026-09-02T20:42:24.600Z",
+    "created_at": "2026-09-02T20:42:24.600Z"
+  },
+  {
+    "payment_id": "pay_scen_b_1788381740633",
+    "amount": 1299,
+    "currency": "INR",
+    "failure_reason": "expired_card",
+    "raw_error_reason": "expired_card",
+    "error_code": null,
+    "error_description": null,
+    "error_source": null,
+    "error_step": null,
+    "customer_history": "first_time_failure",
+    "customer": {
+      "email": "customer@example.com",
+      "contact": "+919999999999",
+      "name": "Test Merchant Customer"
+    },
+    "status": "failed",
+    "is_live_test_mode": true,
+    "is_real_razorpay": true,
+    "updated_at": "2026-09-02T20:42:23.783Z",
+    "created_at": "2026-09-02T20:42:23.783Z"
+  },
+  {
+    "payment_id": "pay_scen_a_1788381740633",
+    "amount": 999,
+    "currency": "INR",
+    "failure_reason": "insufficient_funds",
+    "raw_error_reason": "insufficient_funds",
+    "error_code": null,
+    "error_description": null,
+    "error_source": null,
+    "error_step": null,
+    "customer_history": "previously_recovered_after_reminder",
+    "customer": {
+      "email": "customer@example.com",
+      "contact": "+919999999999",
+      "name": "Test Merchant Customer"
+    },
+    "status": "failed",
+    "is_live_test_mode": true,
+    "is_real_razorpay": true,
+    "updated_at": "2026-09-02T20:42:21.515Z",
+    "created_at": "2026-09-02T20:42:21.517Z"
+  },
+  {
+    "payment_id": "pay_demo_captured_733",
+    "amount": 1499,
+    "currency": "INR",
+    "status": "captured",
+    "failure_reason": "none",
+    "is_live_test_mode": true,
+    "is_real_razorpay": true,
+    "updated_at": "2026-09-02T20:42:01.312Z",
+    "created_at": "2026-09-02T20:42:01.312Z"
+  },
+  {
+    "payment_id": "pay_demo_valid_868",
+    "amount": 999,
+    "currency": "INR",
+    "failure_reason": "insufficient_funds",
+    "raw_error_reason": "insufficient_funds",
+    "error_code": null,
+    "error_description": null,
+    "error_source": null,
+    "error_step": null,
+    "customer_history": "previously_recovered_after_reminder",
+    "customer": {
+      "email": "customer@example.com",
+      "contact": "+919999999999",
+      "name": "Test Merchant Customer"
+    },
+    "status": "failed",
+    "is_live_test_mode": true,
+    "is_real_razorpay": true,
+    "updated_at": "2026-09-02T20:42:00.023Z",
+    "created_at": "2026-09-02T20:41:57.853Z"
+  },
+  {
+    "payment_id": "pay_test_failed_1788381709391_774",
+    "amount": 1499,
+    "currency": "INR",
+    "failure_reason": "none",
+    "raw_error_reason": "insufficient_funds",
+    "error_code": "BAD_REQUEST_ERROR",
+    "error_description": "Payment authorization failed due to insufficient funds",
+    "error_source": "customer",
+    "error_step": "payment_authorization",
+    "customer_history": "previously_recovered_after_reminder",
+    "customer": {
+      "email": "customer@example.com",
+      "contact": "+919999999999",
+      "name": "Test Merchant Customer"
+    },
+    "status": "captured",
+    "failure_timestamp": 1788381709,
+    "is_live_test_mode": true,
+    "is_real_razorpay": true,
+    "updated_at": "2026-09-02T20:41:52.351Z",
+    "created_at": "2026-09-02T20:41:50.224Z"
+  },
+  {
     "payment_id": "pay_scen_f_1788381455974",
     "amount": 999,
     "currency": "INR",
@@ -992,7 +1180,7 @@
     "status": "failed",
     "is_live_test_mode": true,
     "is_real_razorpay": true,
-    "updated_at": "2026-09-02T20:37:45.390Z",
+    "updated_at": "2026-09-02T20:42:30.607Z",
     "created_at": "2026-09-02T19:08:29.322Z"
   },
   {
@@ -1014,7 +1202,7 @@
     "status": "failed",
     "is_live_test_mode": true,
     "is_real_razorpay": true,
-    "updated_at": "2026-09-02T20:37:44.502Z",
+    "updated_at": "2026-09-02T20:42:29.786Z",
     "created_at": "2026-09-02T19:08:29.310Z"
   },
   {
@@ -1025,7 +1213,7 @@
     "failure_reason": "none",
     "is_live_test_mode": true,
     "is_real_razorpay": true,
-    "updated_at": "2026-09-02T20:37:43.712Z",
+    "updated_at": "2026-09-02T20:42:28.932Z",
     "created_at": "2026-09-02T19:08:29.300Z"
   },
   {
